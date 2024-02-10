@@ -13,7 +13,7 @@ CHARACTER_RADIUS = 20
 VELOCITY = 1
 
 # Character position and target position
-character_x, character_y = WIDTH // 2, HEIGHT // 2
+character_x, character_y = WIDTH // 2, HEIGHT // 2 #Ensures that the character starts in the middle of the screen
 target_x, target_y = character_x, character_y
 moving = False
 
@@ -21,6 +21,10 @@ moving = False
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Clickable Character Movement")
 
+# Create a clock (For celing FPS limit. If game becomes complex, it may be necessary to implement an FPS floor limit.)
+clock = pygame.time.Clock()
+
+# Helper function to linearly interpolate between two values 
 def lerp(start, end, t):
     return start + t * (end - start)
 
@@ -41,6 +45,9 @@ while running:
             character_y = lerp(character_y, target_y, t)
         else:
             moving = False
+
+    pygame.display.update()
+    clock.tick(200)
 
     # Clear the screen
     screen.fill(BACKGROUND_COLOR)
