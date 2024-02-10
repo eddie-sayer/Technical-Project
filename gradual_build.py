@@ -12,7 +12,7 @@ CHARACTER_RADIUS = 10
 VELOCITY = 2
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 5  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
 FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
@@ -193,7 +193,11 @@ class Agent:
         F = [
             FS[0] + FB[0] + FT[0] + FN[0],
             FS[1] + FB[1] + FT[1] + FN[1],
-        ] 
+        ] #Divide by mass to get acceleration!
+
+        # Update the agent's position
+        #new_x = self.x + 1 / 2 * F[0] * TIMESTEP ** 2
+        #new_y = self.y + 1 / 2 * F[1] * TIMESTEP ** 2
 
         #Update the agent's position
         velocity_x_new = F[0]/m * TIMESTEP
@@ -278,18 +282,11 @@ rectangles = [
     (200, 590, 550, 40),
     (200, 120, 550, 40),
     (810, 120, 50, 40),
-    (810, 590, 50, 40), 
+    (810, 590, 50, 40), #
     (160, 100, 40, 550),
-    (160, 690, 40, 20), 
-    (160, 40, 40, 20), 
+    (160, 690, 40, 20), #
+    (160, 40, 40, 20), #
 ]
-
-rectangle_coords = []
-
-for rect in rectangles:
-    rectangle_coords.append((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3])) # Convert the rectangle coordinates to (x1, y1, x2, y2) format
-
-print(rectangle_coords)
 
 """
 draw_rectangles = []
@@ -333,7 +330,6 @@ while running:
     screen.fill(BACKGROUND_COLOR)
             
     # Draw the rectangles
-    
     for rect in rectangles:
         pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
     
@@ -341,7 +337,7 @@ while running:
     # Draw the character
     pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
 
-    # Draw the agents 
+    # Draw the agents
     for i in range(NUMBER_OF_AGENTS):
         pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
 
@@ -353,7 +349,12 @@ while running:
         )
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
+                #agent_coords[i] = Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS).move_towards(
+            #FIRST_TARGET[0], FIRST_TARGET[1], agent_velocities[i][0], agent_velocities[i][1], rectangles, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+        #)
+        #agent_velocities[i] = [(agent_coords[i][0] - prev_x) / TIMESTEP, (agent_coords[i][1] - prev_y) / TIMESTEP]
 
+    pygame.display.update()
     clock.tick(FPS)
 
 # Quit Pygame
