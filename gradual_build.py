@@ -13,11 +13,11 @@ WIDTH, HEIGHT = 900, 750
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
-CHARACTER_RADIUS = 10
+CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 10  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
 # Targets
@@ -27,6 +27,9 @@ ROUTE_A_TARGET_3 = (220, 80)
 ROUTE_A_TARGET_4 = (140, 80)
 ROUTE_A_TARGET_5 = (60, 375)
 ROUTE_A_TARGET_6 = (10, 375)
+
+ROUTE_A = [ROUTE_A_TARGET_1, ROUTE_A_TARGET_2, ROUTE_A_TARGET_3, ROUTE_A_TARGET_4, ROUTE_A_TARGET_5, ROUTE_A_TARGET_6]
+
 #FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
 #FIRST_TARGET = [780, 80]  # First target position
 
@@ -57,12 +60,12 @@ B_b: Boundary interaction range = 0.1 m
 R_s = 2 / 0.025  # Radius of the social force
 R_b = 0.3 / 0.025  # Radius of the boundary force
 A_p = 500 / 0.025  # Social Physical interaction strength
-A_s = 20 / 0.025 # Social interaction strength
+A_s = 200 / 0.025 # Social interaction strength
 B_p = 0.2 / 0.025  # Social Physical interaction range
-B_s = 2 / 0.025  # Social interaction range
+B_s = 1 / 0.025  # Social interaction range
 A_b = 200 / 0.025 # Boundary interaction strength
 B_b = 0.3 / 0.025  # Boundary interaction range
-v_0 = 1.34 / 0.025 * 20  # Desired speed
+v_0 = 1.34 / 0.025 * 50  # Desired speed
 T_alpha = 0.5  # Relaxation time
 N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
@@ -122,6 +125,7 @@ class Agent:
         self.x = x
         self.y = y
         self.radius = radius
+        self.current_target = 0 
 
     def calculate_social_force(self, agent_coords, x_closest_agents=X_CLOSEST_AGENTS):
         FS = [0, 0]  # Initialize the social force vector
@@ -175,7 +179,7 @@ class Agent:
 
         return FB
 
-    def move_towards(self, target_x, target_y, velocity_x, velocity_y, rectangles_corners, agent_coords, constants):
+    def move_towards(self, velocity_x, velocity_y, rectangles_corners, agent_coords, constants):
         """
         Move the agent towards the target position while avoiding obstacles and other agents, with a noise term.
         ----------
@@ -212,11 +216,13 @@ class Agent:
         # Calculate the boundary force
         FB = self.calculate_boundary_force(rectangles)
 
+        agent_target_x, agent_target_y = ROUTE_A[self.current_target]
+
         # Calculate the target force
-        distance_to_target = math.hypot(target_x - self.x, target_y - self.y)
+        distance_to_target = math.hypot(agent_target_x - self.x, agent_target_y - self.y)
         direction_unit_vector = [
-            (target_x - self.x) / distance_to_target,
-            (target_y - self.y) / distance_to_target,
+            (agent_target_x - self.x) / distance_to_target,
+            (agent_target_y - self.y) / distance_to_target,
         ]
         FT = [
             (1 / T_alpha) * (v_0 * direction_unit_vector[0] - velocity_x),
@@ -276,8 +282,20 @@ class Agent:
             velocity_x = velocity_x_new
             velocity_y = velocity_y_new
 
+        if distance_to_target < 2 * CHARACTER_RADIUS:
+            self.current_target += 1
+            if self.current_target < len(ROUTE_A):
+                agent_target_x, agent_target_y = ROUTE_A[self.current_target]
+            else:
+                # Remove the agent from all lists
+                agent_index = agent_coords.index((self.x, self.y))
+                agent_coords.pop(agent_index)
+                agent_velocities.pop(agent_index)
+                agent_targets.pop(agent_index)
+                return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y
 
-        return self.x, self.y, velocity_x, velocity_y # Return the new position and velocity of the agent
+
+        return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
 
 # Initialize Pygame
@@ -294,22 +312,6 @@ moving = False
 
 # Define rectangle coordinates
 
-"""
-rectangles = [
-    (29, 720, 870, 750),
-    (29, 0, 870, 30),
-    (870, 0, 900, 750),
-    (0, 0, 29, 331),
-    (0, 419, 29, 750),
-    (161, 583, 706, 613),
-    (161, 136, 706, 165),
-    (800, 136, 870, 165),
-    (800, 583, 870, 613),
-    (131, 119, 161, 629),
-    (131, 702, 161, 720),
-    (131, 30, 161, 48),
-]
-"""
 rectangles = [              # Rectangles, in the format (x1, y1, width, height)
     (40, 710, 820, 40),
     (40, 0, 820, 40),
@@ -329,17 +331,18 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
 
 rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) for rect in rectangles]
 
-"""
-draw_rectangles = []
-for rect in rectangles:
-    draw_rectangles.append((rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1])) # Convert the rectangle coordinates to (x, y, width, height) format
-"""
-
 # Define agent coordinates
 agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
 
+# Initialise agents' first target
+agent_targets = [ROUTE_A[0] for _ in range(NUMBER_OF_AGENTS)]
+print(agent_targets)
+
 # Initialise agent velocities
 agent_velocities = [(0, 0) for _ in range(NUMBER_OF_AGENTS)]
+
+# Create agents
+agents = [Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS) for i in range(NUMBER_OF_AGENTS)]
 
 # Create the window
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -378,21 +381,20 @@ while running:
     pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
 
     # Draw the agents
-    for i in range(NUMBER_OF_AGENTS):
-        pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
+    #for i in range(NUMBER_OF_AGENTS):
+    #    pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
 
     # Move the agents
     for i in range(NUMBER_OF_AGENTS):
+        agent = agents[i]
+        pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
         prev_x, prev_y = agent_coords[i]
-        agent_x, agent_y, agent_vel_x, agent_vel_y = Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS).move_towards(
-            ROUTE_A_TARGET_1[0], ROUTE_A_TARGET_1[1], agent_velocities[i][0], agent_velocities[i][1], rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
-        )
+        prev_x, prev_y, prev_vel_x, prev_vel_y, agent_target_x, agent_target_y = agent.x, agent.y, agent_velocities[i][0], agent_velocities[i][1], agent_targets[i][0], agent_targets[i][1]
+        agent_x, agent_y, agent_vel_x, agent_vel_y, agent_target_x, agent_target_y = agent.move_towards(
+        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m])
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
-                #agent_coords[i] = Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS).move_towards(
-            #FIRST_TARGET[0], FIRST_TARGET[1], agent_velocities[i][0], agent_velocities[i][1], rectangles, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
-        #)
-        #agent_velocities[i] = [(agent_coords[i][0] - prev_x) / TIMESTEP, (agent_coords[i][1] - prev_y) / TIMESTEP]
+        agent_targets[i] = (agent_target_x, agent_target_y)
 
     pygame.display.update()
     clock.tick(FPS)
