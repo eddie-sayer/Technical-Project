@@ -2,7 +2,14 @@ import pygame
 import sys
 import math
 import random
- 
+
+"""
+This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter of 0.5 meters (20 pixels).
+
+"""
+
+
+
 # Constants
 WIDTH, HEIGHT = 900, 750
 BACKGROUND_COLOR = (255, 255, 255)
@@ -12,13 +19,34 @@ CHARACTER_RADIUS = 10
 VELOCITY = 2
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
 FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
 # Agent movement constants #Use Helbeing's constants!!
+"""
+In the original Helbing model, he defines the following constants used in his computer simulations:
+v_0: Desired speed = Guassian distribution with mean 1.34 m/s and standard deviation 0.26 m/s
+T_alpha: Relaxation time = 0.5 s
+N_lb: Noise lower bound = -0.5 m/s^2
+N_ub: Noise upper bound = 0.5 m/s^2
+m: Mass of the agent = 80 kg
+R_s: Radius of the social force = 0.5 m
+R_b: Radius of the boundary force = 0.25 m
+A_p: Physical interaction strength = 2000 N
+A_s: Social interaction strength = 2000 N
+B_p: Physical interaction range = 0.08 m
+B_s: Social interaction range = 0.08 m
+A_b: Boundary interaction strength = 2000 N
+B_b: Boundary interaction range = 0.08 m
+
+
+
+
+"""
+
 R_s = 100  # Radius of the social force
-R_b = 100  # Radius of the boundary force
+R_b = 50  # Radius of the boundary force
 A_p = 200  # Physical interaction strength
 A_s = 200  # Social interaction strength
 B_p = 10  # Physical interaction range
@@ -43,7 +71,7 @@ class Player:
         self.y = y
         self.radius = radius
 
-    def move_towards(self, target_x, target_y, rectangles, agent_coords):
+    def move_towards(self, target_x, target_y, rectangles_corners, agent_coords):
         distance = math.hypot(target_x - self.x, target_y - self.y)
         if distance > 1:
             t = VELOCITY / distance
@@ -53,7 +81,7 @@ class Player:
             collision_detected = False
 
             # Check if the new position is inside any of the rectangles
-            for rect in rectangles:
+            for rect in rectangles_corners:
                 rect_x1, rect_y1, rect_x2, rect_y2 = rect
                 closest_x = max(rect_x1, min(new_x, rect_x2))
                 closest_y = max(rect_y1, min(new_y, rect_y2))
@@ -116,10 +144,10 @@ class Agent:
 
         return FS
 
-    def calculate_boundary_force(self, rectangles): #careful with small doorways
+    def calculate_boundary_force(self, rectangles_corners): #careful with small doorways
         P_alpha = (self.x, self.y)
         FB = [0, 0]
-        for rect in rectangles:
+        for rect in rectangles_corners:
             rect_x1, rect_y1, rect_x2, rect_y2 = rect
             closest_x = max(rect_x1, min(self.x, rect_x2))  # Closest x coordinate to the agent
             closest_y = max(rect_y1, min(self.y, rect_y2))  # Closest y coordinate to the agent
@@ -138,7 +166,7 @@ class Agent:
 
         return FB
 
-    def move_towards(self, target_x, target_y, velocity_x, velocity_y, rectangles, agent_coords, constants):
+    def move_towards(self, target_x, target_y, velocity_x, velocity_y, rectangles_corners, agent_coords, constants):
         """
         Move the agent towards the target position while avoiding obstacles and other agents, with a noise term.
         ----------
@@ -148,7 +176,7 @@ class Agent:
         target_y: y coordinate of the target position
         velocity_x: x component of the agent's velocity
         velocity_y: y component of the agent's velocity
-        rectangles: list of rectangles to avoid
+        rectangles_corners: list of coordinates of the top left and bottom right corners of the rectangles
         agent_coords: list of coordinates of the agents within the social force radius
         constants: list of constants for the social force calculation. [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b]:
         {R_s: radius of the social force
@@ -209,7 +237,7 @@ class Agent:
         collision_detected = False
 
         # Check if the new position is inside any of the rectangles
-        for rect in rectangles:
+        for rect in rectangles_corners:
             rect_x1, rect_y1, rect_x2, rect_y2 = rect
             closest_x = max(rect_x1, min(new_x, rect_x2))
             closest_y = max(rect_y1, min(new_y, rect_y2))
@@ -273,7 +301,7 @@ rectangles = [
     (131, 30, 161, 48),
 ]
 """
-rectangles = [
+rectangles = [              # Rectangles, in the format (x1, y1, width, height)
     (40, 710, 820, 40),
     (40, 0, 820, 40),
     (860, 0, 40, 900),
@@ -287,6 +315,10 @@ rectangles = [
     (160, 690, 40, 20), #
     (160, 40, 40, 20), #
 ]
+
+# Rectangles in the (x1, y1, x2, y2) format
+
+rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) for rect in rectangles]
 
 """
 draw_rectangles = []
@@ -318,7 +350,7 @@ while running:
 
     if moving:
 
-        player.move_towards(target_x, target_y, rectangles, agent_coords)
+        player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
         if math.hypot(target_x - player.x, target_y - player.y) < 1:
             moving = False
 
@@ -332,7 +364,6 @@ while running:
     # Draw the rectangles
     for rect in rectangles:
         pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
-    
 
     # Draw the character
     pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
@@ -345,7 +376,7 @@ while running:
     for i in range(NUMBER_OF_AGENTS):
         prev_x, prev_y = agent_coords[i]
         agent_x, agent_y, agent_vel_x, agent_vel_y = Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS).move_towards(
-            FIRST_TARGET[0], FIRST_TARGET[1], agent_velocities[i][0], agent_velocities[i][1], rectangles, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+            FIRST_TARGET[0], FIRST_TARGET[1], agent_velocities[i][0], agent_velocities[i][1], rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
         )
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
