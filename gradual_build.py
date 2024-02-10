@@ -8,56 +8,65 @@ This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter o
 
 """
 
-
-
 # Constants
 WIDTH, HEIGHT = 900, 750
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
 CHARACTER_RADIUS = 10
-VELOCITY = 2
+VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
-FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
+NUMBER_OF_AGENTS = 10  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
-# Agent movement constants #Use Helbeing's constants!!
+# Targets
+ROUTE_A_TARGET_1 = (780, 200)
+ROUTE_A_TARGET_2 = (780, 80)
+ROUTE_A_TARGET_3 = (220, 80)
+ROUTE_A_TARGET_4 = (140, 80)
+ROUTE_A_TARGET_5 = (60, 375)
+ROUTE_A_TARGET_6 = (10, 375)
+#FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
+#FIRST_TARGET = [780, 80]  # First target position
+
+
+
 """
 In the original Helbing model, he defines the following constants used in his computer simulations:
-v_0: Desired speed = Guassian distribution with mean 1.34 m/s and standard deviation 0.26 m/s
+
+v_0: Desired speed = Guassian distribution with mean 1.34 m/s and standard deviation 0.26 m/s. Actual speed is capped at 1.3 x v_0.
 T_alpha: Relaxation time = 0.5 s
-N_lb: Noise lower bound = -0.5 m/s^2
-N_ub: Noise upper bound = 0.5 m/s^2
-m: Mass of the agent = 80 kg
-R_s: Radius of the social force = 0.5 m
-R_b: Radius of the boundary force = 0.25 m
-A_p: Physical interaction strength = 2000 N
-A_s: Social interaction strength = 2000 N
-B_p: Physical interaction range = 0.08 m
-B_s: Social interaction range = 0.08 m
-A_b: Boundary interaction strength = 2000 N
-B_b: Boundary interaction range = 0.08 m
+N_lb: Noise lower bound = No noise defined in the original simulation
+N_ub: Noise upper bound = No noise defined in the original simulation
+m: Mass of the agent = No mass defined in the original simulation
 
+R_s: Radius of the social force = No social force radius defined in the original simulation
+R_b: Radius of the boundary force = No boundary force radius defined in the original simulation
 
+A_p: Physical interaction strength = 2000 N #
+A_s: Social interaction strength = 2000 N #
+B_p: Physical interaction range = 0.08 m #
+B_s: Social interaction range = 0.08 m #
 
+A_b: Boundary interaction strength = 10 m/s^2
+B_b: Boundary interaction range = 0.1 m
 
 """
 
-R_s = 100  # Radius of the social force
-R_b = 50  # Radius of the boundary force
-A_p = 200  # Physical interaction strength
-A_s = 200  # Social interaction strength
-B_p = 10  # Physical interaction range
-B_s = 100  # Social interaction range
-A_b = 200  # Boundary interaction strength
-B_b = 150  # Boundary interaction range
-v_0 = 400  # Desired speed
-T_alpha = 0.1  # Relaxation time
+R_s = 2 / 0.025  # Radius of the social force
+R_b = 0.3 / 0.025  # Radius of the boundary force
+A_p = 500 / 0.025  # Social Physical interaction strength
+A_s = 20 / 0.025 # Social interaction strength
+B_p = 0.2 / 0.025  # Social Physical interaction range
+B_s = 2 / 0.025  # Social interaction range
+A_b = 200 / 0.025 # Boundary interaction strength
+B_b = 0.3 / 0.025  # Boundary interaction range
+v_0 = 1.34 / 0.025 * 20  # Desired speed
+T_alpha = 0.5  # Relaxation time
 N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
-m = 1  # Mass of the agent
+m = 70 * 0.025  # Mass of the agent
 
 # Functions
 def lerp(start, end, t):  # Linear interpolation function
@@ -221,7 +230,7 @@ class Agent:
         F = [
             FS[0] + FB[0] + FT[0] + FN[0],
             FS[1] + FB[1] + FT[1] + FN[1],
-        ] #Divide by mass to get acceleration!
+        ] 
 
         # Update the agent's position
         #new_x = self.x + 1 / 2 * F[0] * TIMESTEP ** 2
@@ -376,7 +385,7 @@ while running:
     for i in range(NUMBER_OF_AGENTS):
         prev_x, prev_y = agent_coords[i]
         agent_x, agent_y, agent_vel_x, agent_vel_y = Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS).move_towards(
-            FIRST_TARGET[0], FIRST_TARGET[1], agent_velocities[i][0], agent_velocities[i][1], rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+            ROUTE_A_TARGET_1[0], ROUTE_A_TARGET_1[1], agent_velocities[i][0], agent_velocities[i][1], rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
         )
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
