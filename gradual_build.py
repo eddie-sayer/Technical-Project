@@ -13,7 +13,7 @@ WIDTH, HEIGHT = 900, 750
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
-CHARACTER_RADIUS = 7 #10 is the desired atm
+CHARACTER_RADIUS = 10 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
@@ -45,7 +45,7 @@ N_ub: Noise upper bound = No noise defined in the original simulation
 m: Mass of the agent = No mass defined in the original simulation
 
 R_s: Radius of the social force = No social force radius defined in the original simulation
-R_b: Radius of the boundary force = No boundary force radius defined in the original simulation
+R_b: Radius of the boundary force = No boundary force radius defined in the original simulation #Choose sensible values
 
 A_p: Physical interaction strength = 2000 N #
 A_s: Social interaction strength = 2000 N #
@@ -70,6 +70,10 @@ T_alpha = 0.5  # Relaxation time
 N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
 m = 70 * 0.025  # Mass of the agent
+
+#Almost doesn't matter if the values are physical sensible, as long as the simulation looks realistic
+
+
 
 # Functions
 def lerp(start, end, t):  # Linear interpolation function
