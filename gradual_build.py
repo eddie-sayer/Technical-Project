@@ -17,7 +17,7 @@ CHARACTER_RADIUS = 10 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 20  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
 # Targets
@@ -65,7 +65,7 @@ B_p = 0.2 / 0.025  # Social Physical interaction range
 B_s = 1 / 0.025  # Social interaction range
 A_b = 200 / 0.025 # Boundary interaction strength
 B_b = 0.3 / 0.025  # Boundary interaction range
-v_0 = 1.34 / 0.025 * 50  # Desired speed
+v_0 = 1.34 / 0.025 * 100  # Desired speed
 T_alpha = 0.5  # Relaxation time
 N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
@@ -288,6 +288,8 @@ class Agent:
 
         if distance_to_target < 2 * CHARACTER_RADIUS:
             self.current_target += 1
+            agent_target_x, agent_target_y = ROUTE_A[self.current_target]
+            """
             if self.current_target < len(ROUTE_A):
                 agent_target_x, agent_target_y = ROUTE_A[self.current_target]
             else:
@@ -297,7 +299,7 @@ class Agent:
                 agent_velocities.pop(agent_index)
                 agent_targets.pop(agent_index)
                 return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y
-
+            """
 
         return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
@@ -387,6 +389,9 @@ while running:
     # Draw the agents
     #for i in range(NUMBER_OF_AGENTS):
     #    pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
+    
+    # List of indices of agents that have reached their final target 
+    agents_to_remove = []
 
     # Move the agents
     for i in range(NUMBER_OF_AGENTS):
@@ -399,6 +404,18 @@ while running:
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
         agent_targets[i] = (agent_target_x, agent_target_y)
+
+        distance_to_final_target = math.hypot(agent_x - ROUTE_A[-1][0], agent_y - ROUTE_A[-1][1])
+        if distance_to_final_target < 2* CHARACTER_RADIUS:
+            agents_to_remove.append(i)
+
+    # Remove agent i from all lists if it has reached its final target
+    for i in reversed(agents_to_remove): # Reverse the list of indices to remove to avoid index errors
+        agent_coords.pop(i)
+        agent_velocities.pop(i)
+        agent_targets.pop(i)
+        agents.pop(i)
+        NUMBER_OF_AGENTS -= 1
 
     pygame.display.update()
     clock.tick(FPS)
