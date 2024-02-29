@@ -13,12 +13,13 @@ WIDTH, HEIGHT = 900, 750
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
-CHARACTER_RADIUS = 10 #10 is the desired atm
+CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 20  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
+TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
 # Targets
 ROUTE_A_TARGET_1 = (780, 200)
@@ -30,8 +31,14 @@ ROUTE_A_TARGET_6 = (10, 375)
 
 ROUTE_A = [ROUTE_A_TARGET_1, ROUTE_A_TARGET_2, ROUTE_A_TARGET_3, ROUTE_A_TARGET_4, ROUTE_A_TARGET_5, ROUTE_A_TARGET_6]
 
-#FIRST_TARGET = [0.9 * WIDTH, HEIGHT // 2]  # First target position
-#FIRST_TARGET = [780, 80]  # First target position
+ROUTE_B_TARGET_1 = (780, 550)
+ROUTE_B_TARGET_2 = (780, 670)
+ROUTE_B_TARGET_3 = (220, 670)
+ROUTE_B_TARGET_4 = (140, 670)
+ROUTE_B_TARGET_5 = (60, 375)
+ROUTE_B_TARGET_6 = (10, 375)
+
+ROUTE_B = [ROUTE_B_TARGET_1, ROUTE_B_TARGET_2, ROUTE_B_TARGET_3, ROUTE_B_TARGET_4, ROUTE_B_TARGET_5, ROUTE_B_TARGET_6]
 
 
 
@@ -56,6 +63,8 @@ A_b: Boundary interaction strength = 10 m/s^2
 B_b: Boundary interaction range = 0.1 m
 
 """
+"""
+Decent set of values:
 
 R_s = 2 / 0.025  # Radius of the social force
 R_b = 0.3 / 0.025  # Radius of the boundary force
@@ -70,8 +79,29 @@ T_alpha = 0.5  # Relaxation time
 N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
 m = 70 * 0.025  # Mass of the agent
-
+"""
 #Almost doesn't matter if the values are physical sensible, as long as the simulation looks realistic
+
+# Constants for the social force calculation
+# Directly from the Helbing paper:
+
+v_0 = 1.34 * 1000   # Desired speed
+T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
+A_b = 10 * 500      # Boundary interaction strength
+B_b = 0.1 * 150     # Boundary interaction range
+A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
+B_s = 0.3 * 150     # Social interaction range
+
+# Personally chosen values
+
+N_lb = -0.5         # Noise lower bound
+N_ub = 0.5          # Noise upper bound
+m = 1               # Mass of the agent
+R_s = 100           # Radius of the social force
+R_b = 70            # Radius of the boundary force
+A_p = 4000          # Physical interaction strength
+B_p = 0.1 * 150     # Physical interaction range
+
 
 
 
@@ -220,7 +250,7 @@ class Agent:
         # Calculate the boundary force
         FB = self.calculate_boundary_force(rectangles)
 
-        agent_target_x, agent_target_y = ROUTE_A[self.current_target]
+        agent_target_x, agent_target_y = ROUTE_B[self.current_target]
 
         # Calculate the target force
         distance_to_target = math.hypot(agent_target_x - self.x, agent_target_y - self.y)
@@ -286,20 +316,9 @@ class Agent:
             velocity_x = velocity_x_new
             velocity_y = velocity_y_new
 
-        if distance_to_target < 2 * CHARACTER_RADIUS:
+        if distance_to_target < TARGET_CHANGE_RADIUS: # 2 * CHARACTER_RADIUS is the original value
             self.current_target += 1
-            agent_target_x, agent_target_y = ROUTE_A[self.current_target]
-            """
-            if self.current_target < len(ROUTE_A):
-                agent_target_x, agent_target_y = ROUTE_A[self.current_target]
-            else:
-                # Remove the agent from all lists
-                agent_index = agent_coords.index((self.x, self.y))
-                agent_coords.pop(agent_index)
-                agent_velocities.pop(agent_index)
-                agent_targets.pop(agent_index)
-                return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y
-            """
+            agent_target_x, agent_target_y = ROUTE_B[self.current_target]
 
         return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
@@ -341,7 +360,7 @@ rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) f
 agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
 
 # Initialise agents' first target
-agent_targets = [ROUTE_A[0] for _ in range(NUMBER_OF_AGENTS)]
+agent_targets = [ROUTE_B[0] for _ in range(NUMBER_OF_AGENTS)]
 print(agent_targets)
 
 # Initialise agent velocities
@@ -405,8 +424,8 @@ while running:
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
         agent_targets[i] = (agent_target_x, agent_target_y)
 
-        distance_to_final_target = math.hypot(agent_x - ROUTE_A[-1][0], agent_y - ROUTE_A[-1][1])
-        if distance_to_final_target < 2* CHARACTER_RADIUS:
+        distance_to_final_target = math.hypot(agent_x - ROUTE_B[-1][0], agent_y - ROUTE_B[-1][1])
+        if distance_to_final_target < TARGET_CHANGE_RADIUS:
             agents_to_remove.append(i)
 
     # Remove agent i from all lists if it has reached its final target
