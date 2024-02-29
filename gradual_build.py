@@ -10,6 +10,7 @@ This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter o
 
 # Constants
 WIDTH, HEIGHT = 900, 750
+SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
@@ -25,7 +26,7 @@ TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent cha
 ROUTE_A_TARGET_1 = (780, 200)
 ROUTE_A_TARGET_2 = (780, 80)
 ROUTE_A_TARGET_3 = (220, 80)
-ROUTE_A_TARGET_4 = (140, 80)
+ROUTE_A_TARGET_4 = (130, 80)
 ROUTE_A_TARGET_5 = (60, 375)
 ROUTE_A_TARGET_6 = (10, 375)
 
@@ -34,7 +35,7 @@ ROUTE_A = [ROUTE_A_TARGET_1, ROUTE_A_TARGET_2, ROUTE_A_TARGET_3, ROUTE_A_TARGET_
 ROUTE_B_TARGET_1 = (780, 550)
 ROUTE_B_TARGET_2 = (780, 670)
 ROUTE_B_TARGET_3 = (220, 670)
-ROUTE_B_TARGET_4 = (140, 670)
+ROUTE_B_TARGET_4 = (130, 670)
 ROUTE_B_TARGET_5 = (60, 375)
 ROUTE_B_TARGET_6 = (10, 375)
 
@@ -323,6 +324,33 @@ class Agent:
         return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
 
+# Function to generate agent positions
+def generate_agent_positions(num_agents, spawn_box, avoid_positions, min_distance):
+
+    agent_positions = []
+
+    for i in range(num_agents):
+        while True:
+            x = random.uniform(spawn_box[0] + 2 * CHARACTER_RADIUS, spawn_box[2] - 2 * CHARACTER_RADIUS)
+            y = random.uniform(spawn_box[1] + 2 * CHARACTER_RADIUS, spawn_box[3] - 2 * CHARACTER_RADIUS)
+
+            # Check if the agent is too close / overlapping with any other agents
+            too_close = False
+            for position in avoid_positions:
+                distance = math.hypot(x - position[0], y - position[1])
+                if distance < min_distance:
+                    too_close = True
+                    break
+
+            if not too_close:
+                agent_positions.append((x, y))
+                avoid_positions.append((x, y)) # Add the new position to the list of positions to avoid
+                break
+
+    return agent_positions
+
+
+
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -357,7 +385,8 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
 rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) for rect in rectangles]
 
 # Define agent coordinates
-agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
+#agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
+agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(player.x, player.y)], 2 * CHARACTER_RADIUS)
 
 # Initialise agents' first target
 agent_targets = [ROUTE_B[0] for _ in range(NUMBER_OF_AGENTS)]
