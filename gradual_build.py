@@ -6,7 +6,23 @@ import random
 """
 This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter of 0.5 meters (20 pixels).
 
+The simulation will be tested with many participants and responses recorded, subject to two different types of treatment.
+The first treatement is homogeneous vs heterogeneous agent movement . In the heterogeneous treatment, agents will have different
+parameters for their movement, such as their desired speed, relaxation time, and noise. In the homogeneous treatment, all agents
+will have the same parameters for their movement.
+The second treatment will be a symmetric vs asymmetric split of the room. In the symmetric treatment, agents will divide evenly between
+two routes, with the same number of agents on each route. In the asymmetric treatment, there will be a different number of agents on each route.
+
+This gives rise to four treatment combinations:
+
+1. Control: Homogeneous and symmetric (C)
+2. Heterogeneous: Heterogeneous and symmetric (H)
+3. Asymmetric: Homogeneous and asymmetric (A)
+4. Combination: Heterogeneous and asymmetric (HA)
+
 """
+
+SELECTED_TREATMENT = "T" # Choose from "C", "H", "A", "HA" (or "T" for testing)
 
 # Constants
 WIDTH, HEIGHT = 900, 750
@@ -18,7 +34,7 @@ CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
@@ -85,7 +101,7 @@ m = 70 * 0.025  # Mass of the agent
 
 # Constants for the social force calculation
 # Directly from the Helbing paper:
-
+"""
 v_0 = 1.34 * 1000   # Desired speed
 T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
 A_b = 10 * 500      # Boundary interaction strength
@@ -102,7 +118,7 @@ R_s = 100           # Radius of the social force
 R_b = 70            # Radius of the boundary force
 A_p = 4000          # Physical interaction strength
 B_p = 0.1 * 150     # Physical interaction range
-
+"""
 
 
 
@@ -160,7 +176,8 @@ class Agent:
         self.x = x
         self.y = y
         self.radius = radius
-        self.current_target = 0 
+        self.current_target = 0
+        self.route = [] 
 
     def calculate_social_force(self, agent_coords, x_closest_agents=X_CLOSEST_AGENTS):
         FS = [0, 0]  # Initialize the social force vector
@@ -251,7 +268,7 @@ class Agent:
         # Calculate the boundary force
         FB = self.calculate_boundary_force(rectangles)
 
-        agent_target_x, agent_target_y = ROUTE_B[self.current_target]
+        agent_target_x, agent_target_y = self.route[self.current_target]
 
         # Calculate the target force
         distance_to_target = math.hypot(agent_target_x - self.x, agent_target_y - self.y)
@@ -319,7 +336,7 @@ class Agent:
 
         if distance_to_target < TARGET_CHANGE_RADIUS: # 2 * CHARACTER_RADIUS is the original value
             self.current_target += 1
-            agent_target_x, agent_target_y = ROUTE_B[self.current_target]
+            agent_target_x, agent_target_y = self.route[self.current_target]
 
         return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
@@ -349,6 +366,27 @@ def generate_agent_positions(num_agents, spawn_box, avoid_positions, min_distanc
 
     return agent_positions
 
+# Function to determine the route split
+
+def route_split(agents, agent_coords, route_a_percentage):
+
+    sorted_agents = sorted(agents, key=lambda agent: agent_coords[agents.index(agent)][1])
+
+    num_agents = int(len(sorted_agents) * route_a_percentage / 100)
+
+    agents_route_a = sorted_agents[:num_agents]
+    agents_route_b = sorted_agents[num_agents:]
+
+    # Assign routes to agents
+    for agent in agents_route_a:
+        agent.route = ROUTE_A.copy()
+
+    for agent in agents_route_b:
+        agent.route = ROUTE_B.copy()
+
+    agent_targets = [agent.route[0] for agent in agents]
+
+    return agent_targets
 
 
 # Initialize Pygame
@@ -388,15 +426,66 @@ rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) f
 #agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
 agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(player.x, player.y)], 2 * CHARACTER_RADIUS)
 
-# Initialise agents' first target
-agent_targets = [ROUTE_B[0] for _ in range(NUMBER_OF_AGENTS)]
-print(agent_targets)
-
 # Initialise agent velocities
 agent_velocities = [(0, 0) for _ in range(NUMBER_OF_AGENTS)]
 
 # Create agents
 agents = [Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS) for i in range(NUMBER_OF_AGENTS)]
+
+# Apply treatments
+if SELECTED_TREATMENT == "C":
+
+    agent_targets = route_split(agents, agent_coords, 50)
+
+    v_0 = 1.34 * 1000   # Desired speed
+    T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
+    A_b = 10 * 500      # Boundary interaction strength
+    B_b = 0.1 * 150     # Boundary interaction range
+    A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
+    B_s = 0.3 * 150     # Social interaction range
+
+    N_lb = -0.5         # Noise lower bound
+    N_ub = 0.5          # Noise upper bound
+    m = 1               # Mass of the agent
+    R_s = 100           # Radius of the social force
+    R_b = 70            # Radius of the boundary force
+    A_p = 4000          # Physical interaction strength
+    B_p = 0.1 * 150     # Physical interaction range
+
+
+elif SELECTED_TREATMENT == "H":
+
+    agent_targets = route_split(agents, agent_coords, 50)
+
+elif SELECTED_TREATMENT == "A":
+
+    agent_targets = route_split(agents, agent_coords, 70)
+
+elif SELECTED_TREATMENT == "HA":
+
+    agent_targets = route_split(agents, agent_coords, 70)
+
+elif SELECTED_TREATMENT == "T":
+
+    agent_targets = route_split(agents, agent_coords, 80)
+
+    v_0 = 1.34 * 1000   # Desired speed
+    T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
+    A_b = 10 * 500      # Boundary interaction strength
+    B_b = 0.1 * 150     # Boundary interaction range
+    A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
+    B_s = 0.3 * 150     # Social interaction range
+
+    N_lb = -0.5         # Noise lower bound
+    N_ub = 0.5          # Noise upper bound
+    m = 1               # Mass of the agent
+    R_s = 100           # Radius of the social force
+    R_b = 70            # Radius of the boundary force
+    A_p = 4000          # Physical interaction strength
+    B_p = 0.1 * 150     # Physical interaction range
+
+else:
+    raise ValueError("Invalid treatment selected")
 
 # Create the window
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -453,7 +542,7 @@ while running:
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
         agent_targets[i] = (agent_target_x, agent_target_y)
 
-        distance_to_final_target = math.hypot(agent_x - ROUTE_B[-1][0], agent_y - ROUTE_B[-1][1])
+        distance_to_final_target = math.hypot(agent_x - agent.route[-1][0], agent_y - agent.route[-1][1])
         if distance_to_final_target < TARGET_CHANGE_RADIUS:
             agents_to_remove.append(i)
 
