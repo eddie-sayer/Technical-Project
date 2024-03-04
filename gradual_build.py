@@ -20,6 +20,13 @@ This gives rise to four treatment combinations:
 3. Asymmetric: Homogeneous and asymmetric (A)
 4. Combination: Heterogeneous and asymmetric (HA)
 
+The terms varied to represent heterogeneity in the population are the noise term, the relaxation time, the desired speed and the mass.
+All other terms are kept constant across all agents.
+- The ub noise term is a random value between 0.5 and 5000, and the lb noise term is a random value between -0.5 and -5000.
+- The relaxation time is a random value between 0.4 and 0.7.
+- The desired speed is a Guassian distribution with mean 1.34 m/s and standard deviation 0.26 m/s. Actual speed is capped at 1.3 x v_0.
+  The result is then scaled to the simulation by multiplying by 1000.
+- The mass of the agent is a random value between 0.8 and 1.2.
 """
 
 SELECTED_TREATMENT = "T" # Choose from "C", "H", "A", "HA" (or "T" for testing)
@@ -34,7 +41,7 @@ CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
@@ -176,10 +183,29 @@ class Agent:
         self.x = x
         self.y = y
         self.radius = radius
+        #self.constants = constants
         self.current_target = 0
         self.route = [] 
 
-    def calculate_social_force(self, agent_coords, x_closest_agents=X_CLOSEST_AGENTS):
+    def calculate_social_force(self, agent_coords, constants, x_closest_agents=X_CLOSEST_AGENTS):
+
+        # Unpack the constants
+        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
+
+        R_s = constants[0]
+        #R_b = constants[1]
+        A_p = constants[2]
+        A_s = constants[3]
+        B_p = constants[4]
+        B_s = constants[5]
+        #A_b = constants[6]
+        #B_b = constants[7]
+        #v_0 = constants[8]
+        #T_alpha = constants[9]
+        #N_lb = constants[10]
+        #N_ub = constants[11]
+        #m = constants[12]
+
         FS = [0, 0]  # Initialize the social force vector
 
         P_alpha = (self.x, self.y)
@@ -209,7 +235,25 @@ class Agent:
 
         return FS
 
-    def calculate_boundary_force(self, rectangles_corners): #careful with small doorways
+    def calculate_boundary_force(self, rectangles_corners, constants): #careful with small doorways
+
+        # Unpack the constants
+        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
+
+        #R_s = constants[0]
+        R_b = constants[1]
+        #A_p = constants[2]
+        #A_s = constants[3]
+        #B_p = constants[4]
+        #B_s = constants[5]
+        A_b = constants[6]
+        B_b = constants[7]
+        #v_0 = constants[8]
+        #T_alpha = constants[9]
+        #N_lb = constants[10]
+        #N_ub = constants[11]
+        #m = constants[12]
+
         P_alpha = (self.x, self.y)
         FB = [0, 0]
         for rect in rectangles_corners:
@@ -260,13 +304,28 @@ class Agent:
         ----------
         """
         # Unpack the constants
-        R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = constants
+        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
+
+        #R_s = self.constants[0]
+        #R_b = self.constants[1]
+        #A_p = self.constants[2]
+        #A_s = self.constants[3]
+        #B_p = self.constants[4]
+        #B_s = self.constants[5]
+        #A_b = self.constants[6]
+        #B_b = self.constants[7]
+        v_0 = constants[8]
+        T_alpha = constants[9]
+        N_lb = constants[10]
+        N_ub = constants[11]
+        m = constants[12]
+
 
         # Calculate the social force
-        FS = self.calculate_social_force(agent_coords)
+        FS = self.calculate_social_force(agent_coords, constants)
 
         # Calculate the boundary force
-        FB = self.calculate_boundary_force(rectangles)
+        FB = self.calculate_boundary_force(rectangles, constants)
 
         agent_target_x, agent_target_y = self.route[self.current_target]
 
@@ -388,6 +447,56 @@ def route_split(agents, agent_coords, route_a_percentage):
 
     return agent_targets
 
+# Function to generate agent constants
+def generate_agent_constants(agents, homohetero):
+
+    agent_constants = []
+    
+    if homohetero == "homo":
+        
+        for agent in agents:
+
+            v_0 = 1.34 * 1000
+            T_alpha = 0.5
+            A_b = 10 * 500
+            B_b = 0.1 * 150
+            A_s = 2.3 * 1000
+            B_s = 0.3 * 150
+            N_lb = -0.5
+            N_ub = 0.5
+            m = 1
+            R_s = 100
+            R_b = 70
+            A_p = 4000
+            B_p = 0.1 * 150
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+    elif homohetero == "hetero":
+
+        for agent in agents:
+
+            v_0 = random.gauss(1.34, 0.26) * 1000
+            T_alpha = random.uniform(0.4, 0.7)
+            A_b = 10 * 500
+            B_b = 0.1 * 150
+            A_s = 2.3 * 1000
+            B_s = 0.3 * 150
+            N_lb = random.uniform(-0.5, -5000)
+            N_ub = N_lb * -1
+            m = random.uniform(0.8, 1.2)
+            R_s = 100
+            R_b = 70
+            A_p = 4000
+            B_p = 0.1 * 150
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+    return agent_constants
+
+
 
 # Initialize Pygame
 pygame.init()
@@ -437,6 +546,8 @@ if SELECTED_TREATMENT == "C":
 
     agent_targets = route_split(agents, agent_coords, 50)
 
+    agent_constants = generate_agent_constants(agents, "homo")
+    """
     v_0 = 1.34 * 1000   # Desired speed
     T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
     A_b = 10 * 500      # Boundary interaction strength
@@ -451,7 +562,7 @@ if SELECTED_TREATMENT == "C":
     R_b = 70            # Radius of the boundary force
     A_p = 4000          # Physical interaction strength
     B_p = 0.1 * 150     # Physical interaction range
-
+    """
 
 elif SELECTED_TREATMENT == "H":
 
@@ -469,6 +580,9 @@ elif SELECTED_TREATMENT == "T":
 
     agent_targets = route_split(agents, agent_coords, 80)
 
+    agent_constants = generate_agent_constants(agents, "hetero")
+
+    """
     v_0 = 1.34 * 1000   # Desired speed
     T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
     A_b = 10 * 500      # Boundary interaction strength
@@ -476,13 +590,14 @@ elif SELECTED_TREATMENT == "T":
     A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
     B_s = 0.3 * 150     # Social interaction range
 
-    N_lb = -0.5         # Noise lower bound
-    N_ub = 0.5          # Noise upper bound
+    N_lb = -0.5        # Noise lower bound
+    N_ub = 0.5         # Noise upper bound         # 5000 gives noticable noise. 0.5-5000 noise
     m = 1               # Mass of the agent
     R_s = 100           # Radius of the social force
     R_b = 70            # Radius of the boundary force
     A_p = 4000          # Physical interaction strength
     B_p = 0.1 * 150     # Physical interaction range
+    """
 
 else:
     raise ValueError("Invalid treatment selected")
@@ -535,9 +650,10 @@ while running:
         agent = agents[i]
         pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
         prev_x, prev_y = agent_coords[i]
+        agent_constant_list = agent_constants[i]
         prev_x, prev_y, prev_vel_x, prev_vel_y, agent_target_x, agent_target_y = agent.x, agent.y, agent_velocities[i][0], agent_velocities[i][1], agent_targets[i][0], agent_targets[i][1]
         agent_x, agent_y, agent_vel_x, agent_vel_y, agent_target_x, agent_target_y = agent.move_towards(
-        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m])
+        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, agent_constant_list)
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
         agent_targets[i] = (agent_target_x, agent_target_y)
@@ -551,8 +667,11 @@ while running:
         agent_coords.pop(i)
         agent_velocities.pop(i)
         agent_targets.pop(i)
+        agent_constant_list.pop(i)
         agents.pop(i)
         NUMBER_OF_AGENTS -= 1
+    
+    print(agent_constant_list)
 
     pygame.display.update()
     clock.tick(FPS)
