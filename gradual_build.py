@@ -29,7 +29,7 @@ All other terms are kept constant across all agents.
 - The mass of the agent is a random value between 0.8 and 1.2.
 """
 
-SELECTED_TREATMENT = "T" # Choose from "C", "H", "A", "HA" (or "T" for testing)
+SELECTED_TREATMENT = "HA" # Choose from "C", "H", "A", "HA" (or "T" for testing)
 
 # Constants
 WIDTH, HEIGHT = 900, 750
@@ -41,7 +41,7 @@ CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 50  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
@@ -104,29 +104,9 @@ N_lb = -0.5  # Noise lower bound
 N_ub = 0.5  # Noise upper bound
 m = 70 * 0.025  # Mass of the agent
 """
-#Almost doesn't matter if the values are physical sensible, as long as the simulation looks realistic
 
 # Constants for the social force calculation
 # Directly from the Helbing paper:
-"""
-v_0 = 1.34 * 1000   # Desired speed
-T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
-A_b = 10 * 500      # Boundary interaction strength
-B_b = 0.1 * 150     # Boundary interaction range
-A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
-B_s = 0.3 * 150     # Social interaction range
-
-# Personally chosen values
-
-N_lb = -0.5         # Noise lower bound
-N_ub = 0.5          # Noise upper bound
-m = 1               # Mass of the agent
-R_s = 100           # Radius of the social force
-R_b = 70            # Radius of the boundary force
-A_p = 4000          # Physical interaction strength
-B_p = 0.1 * 150     # Physical interaction range
-"""
-
 
 
 # Functions
@@ -183,15 +163,12 @@ class Agent:
         self.x = x
         self.y = y
         self.radius = radius
-        #self.constants = constants
         self.current_target = 0
         self.route = [] 
 
     def calculate_social_force(self, agent_coords, constants, x_closest_agents=X_CLOSEST_AGENTS):
 
         # Unpack the constants
-        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
-
         R_s = constants[0]
         #R_b = constants[1]
         A_p = constants[2]
@@ -238,8 +215,6 @@ class Agent:
     def calculate_boundary_force(self, rectangles_corners, constants): #careful with small doorways
 
         # Unpack the constants
-        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
-
         #R_s = constants[0]
         R_b = constants[1]
         #A_p = constants[2]
@@ -304,8 +279,6 @@ class Agent:
         ----------
         """
         # Unpack the constants
-        #R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m = self.constants
-
         #R_s = self.constants[0]
         #R_b = self.constants[1]
         #A_p = self.constants[2]
@@ -348,10 +321,6 @@ class Agent:
             FS[0] + FB[0] + FT[0] + FN[0],
             FS[1] + FB[1] + FT[1] + FN[1],
         ] 
-
-        # Update the agent's position
-        #new_x = self.x + 1 / 2 * F[0] * TIMESTEP ** 2
-        #new_y = self.y + 1 / 2 * F[1] * TIMESTEP ** 2
 
         #Update the agent's position
         velocity_x_new = F[0]/m * TIMESTEP
@@ -532,7 +501,6 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
 rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) for rect in rectangles]
 
 # Define agent coordinates
-#agent_coords = [(random.randint(170, 700), random.randint(170, 575)) for _ in range(NUMBER_OF_AGENTS)]
 agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(player.x, player.y)], 2 * CHARACTER_RADIUS)
 
 # Initialise agent velocities
@@ -547,40 +515,59 @@ if SELECTED_TREATMENT == "C":
     agent_targets = route_split(agents, agent_coords, 50)
 
     agent_constants = generate_agent_constants(agents, "homo")
-    """
-    v_0 = 1.34 * 1000   # Desired speed
-    T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
-    A_b = 10 * 500      # Boundary interaction strength
-    B_b = 0.1 * 150     # Boundary interaction range
-    A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
-    B_s = 0.3 * 150     # Social interaction range
 
-    N_lb = -0.5         # Noise lower bound
-    N_ub = 0.5          # Noise upper bound
-    m = 1               # Mass of the agent
-    R_s = 100           # Radius of the social force
-    R_b = 70            # Radius of the boundary force
-    A_p = 4000          # Physical interaction strength
-    B_p = 0.1 * 150     # Physical interaction range
-    """
+    agent_constant_list = []
+
+    for i in range(NUMBER_OF_AGENTS):
+        agent_constant_list.append(agent_constants[i])
+    
 
 elif SELECTED_TREATMENT == "H":
 
     agent_targets = route_split(agents, agent_coords, 50)
 
+    agent_constants = generate_agent_constants(agents, "hetero")
+
+    agent_constant_list = []
+
+    for i in range(NUMBER_OF_AGENTS):
+        agent_constant_list.append(agent_constants[i])
+
+
 elif SELECTED_TREATMENT == "A":
 
     agent_targets = route_split(agents, agent_coords, 70)
 
+    agent_constants = generate_agent_constants(agents, "homo")
+
+    agent_constant_list = []
+
+    for i in range(NUMBER_OF_AGENTS):
+        agent_constant_list.append(agent_constants[i])
+
+
 elif SELECTED_TREATMENT == "HA":
 
     agent_targets = route_split(agents, agent_coords, 70)
+
+    agent_constants = generate_agent_constants(agents, "hetero")
+
+    agent_constant_list = []
+
+    for i in range(NUMBER_OF_AGENTS):
+        agent_constant_list.append(agent_constants[i])
+
 
 elif SELECTED_TREATMENT == "T":
 
     agent_targets = route_split(agents, agent_coords, 80)
 
     agent_constants = generate_agent_constants(agents, "hetero")
+
+    agent_constant_list = []
+
+    for i in range(NUMBER_OF_AGENTS):
+        agent_constant_list.append(agent_constants[i])
 
     """
     v_0 = 1.34 * 1000   # Desired speed
@@ -637,10 +624,6 @@ while running:
 
     # Draw the character
     pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
-
-    # Draw the agents
-    #for i in range(NUMBER_OF_AGENTS):
-    #    pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
     
     # List of indices of agents that have reached their final target 
     agents_to_remove = []
@@ -648,12 +631,12 @@ while running:
     # Move the agents
     for i in range(NUMBER_OF_AGENTS):
         agent = agents[i]
-        pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS)
+        pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
         prev_x, prev_y = agent_coords[i]
-        agent_constant_list = agent_constants[i]
+        agent_constant = agent_constants[i]
         prev_x, prev_y, prev_vel_x, prev_vel_y, agent_target_x, agent_target_y = agent.x, agent.y, agent_velocities[i][0], agent_velocities[i][1], agent_targets[i][0], agent_targets[i][1]
         agent_x, agent_y, agent_vel_x, agent_vel_y, agent_target_x, agent_target_y = agent.move_towards(
-        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, agent_constant_list)
+        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, agent_constant)
         agent_coords[i] = (agent_x, agent_y)
         agent_velocities[i] = (agent_vel_x, agent_vel_y)
         agent_targets[i] = (agent_target_x, agent_target_y)
@@ -671,8 +654,6 @@ while running:
         agents.pop(i)
         NUMBER_OF_AGENTS -= 1
     
-    print(agent_constant_list)
-
     pygame.display.update()
     clock.tick(FPS)
 
