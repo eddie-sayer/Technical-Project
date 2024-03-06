@@ -193,7 +193,8 @@ class Agent:
 
         P_alpha = (self.x, self.y)
 
-        agent_coords.append((player.x, player.y))
+        if player_present:
+            agent_coords.append((player.x, player.y))
 
         # Sort agents based on distance
         sorted_agents = sorted(agent_coords, key=lambda agent: math.hypot(agent[0] - P_alpha[0], agent[1] - P_alpha[1]))
@@ -214,7 +215,8 @@ class Agent:
                 FS[0] -= A_p * direction_unit_vector[0] * math.exp(-distance / B_p) + A_s * direction_unit_vector[0] * math.exp(-distance / B_s)
                 FS[1] -= A_p * direction_unit_vector[1] * math.exp(-distance / B_p) + A_s * direction_unit_vector[1] * math.exp(-distance / B_s)
 
-        agent_coords.pop() # Remove the player from the list of agents
+        if player_present:
+            agent_coords.pop() # Remove the player from the list of agents
 
         return FS
 
@@ -349,7 +351,8 @@ class Agent:
                 collision_detected = True
                 break  # Do not update position if it would intersect with a rectangle
         
-        agent_coords.append((player.x, player.y))
+        if player_present:
+            agent_coords.append((player.x, player.y))
         # Check if the new position is inside any of the agents or the player
         for agent in agent_coords:
             if agent == (self.x, self.y):
@@ -358,8 +361,9 @@ class Agent:
             if distance_to_closest < 2 * CHARACTER_RADIUS:
                 collision_detected = True
                 break  # Do not update position if it would intersect with an agent or the player
-
-        agent_coords.pop()
+        
+        if player_present:
+            agent_coords.pop()
 
         # Update the agent's position
         if not collision_detected:
@@ -484,6 +488,20 @@ INSTRUCT_2_TEXT = [ "Great!",
                     "Press SPACE to start",
                     ]
 
+CONGRATS_TEXT = [   "Congratulations!",
+                    "You have reached the exit!",
+                    "Let's wait for the other agents to evacuate.",
+                    ]
+
+END_STATS_TEXT = [ "Evacuation complete!",
+                    "Time taken (player): ",
+                    "Time taken (everyone): ",
+                    "Collisions: ",
+                    "Click counter: ",
+                    "Route choice: ",
+                    "You may now close the window.",
+                    ]
+
 INSTRUCT_FONT = pygame.font.Font(None, 36)
 INSTRUCT_TEXT_COLOR = (0, 0, 0)
 
@@ -505,6 +523,21 @@ def display_instructional_screen_2(screen):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(INSTRUCT_2_TEXT) * text.get_height() // 2 + i * text.get_height()))
     pygame.display.flip()
+
+# Function to display message once player reaches the target
+def display_target_reached(screen):
+    for i, line in enumerate(CONGRATS_TEXT):
+        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(CONGRATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
+
+# Function to display the final screen
+def display_final_screen(screen):
+    screen.fill(BACKGROUND_COLOR)
+    for i, line in enumerate(END_STATS_TEXT):
+        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(END_STATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
+
+
 
 """
 # Function to display the final screen
@@ -654,6 +687,8 @@ instructional_screen_2_active = False
 initial_navigation = False
 main_simulation = False
 agents_present = True
+player_present = True
+final_screen = False
 
 running = True
 while running:
@@ -740,7 +775,13 @@ while running:
             pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
 
         # Draw the character
-        pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
+        if player_present:
+            pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
+
+        # Draw the target
+        cross_size = 10 
+        pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 - cross_size), (10 + cross_size, 375 + cross_size), 4)
+        pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 + cross_size), (10 + cross_size, 375 - cross_size), 4)
         
         # List of indices of agents that have reached their final target 
         agents_to_remove = []
@@ -771,6 +812,16 @@ while running:
             agents.pop(i)
             NUMBER_OF_AGENTS -= 1
 
+        player_distance_to_final_target = math.hypot(player.x - ROUTE_A_TARGET_6[0], player.y - ROUTE_A_TARGET_6[1])
+        if player_distance_to_final_target < TARGET_CHANGE_RADIUS:
+            player_present = False
+
+        if player_present == False:
+            #font = pygame.font.Font(None, 36)
+            #message = font.render("Congratulations! Now we wait for everyone else.", True, (0, 0, 0))
+            #screen.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
+            display_target_reached(screen)
+
         # Draw the timer
         timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
         screen.blit(timer_text, (10, 10))
@@ -778,7 +829,12 @@ while running:
         # Check if all agents have reached their final target
         if len(agents) == 0:
             agents_present = False
+            main_simulation = False
+            final_screen = True
             main_simulation_end = pygame.time.get_ticks() # End the timer for the main simulation
+
+    if final_screen:
+        display_final_screen(screen)
 
     pygame.display.update()
     clock.tick(FPS)
