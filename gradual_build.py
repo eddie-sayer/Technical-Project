@@ -37,6 +37,7 @@ SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
 BACKGROUND_COLOR = (255, 255, 255)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
+CROSS_COLOR = (255, 0, 0)
 CHARACTER_RADIUS = 7 #10 is the desired atm
 VELOCITY = 1.34   # Desired speed of the player
 FPS = 60  # Frames per second
@@ -64,7 +65,9 @@ ROUTE_B_TARGET_6 = (10, 375)
 
 ROUTE_B = [ROUTE_B_TARGET_1, ROUTE_B_TARGET_2, ROUTE_B_TARGET_3, ROUTE_B_TARGET_4, ROUTE_B_TARGET_5, ROUTE_B_TARGET_6]
 
-
+# Initialize Pygame
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 """
 In the original Helbing model, he defines the following constants used in his computer simulations:
@@ -123,6 +126,7 @@ class Player:
 
     def move_towards(self, target_x, target_y, rectangles_corners, agent_coords):
         distance = math.hypot(target_x - self.x, target_y - self.y)
+        
         if distance > 1:
             t = VELOCITY / distance
             new_x = lerp(self.x, target_x, t)
@@ -141,13 +145,14 @@ class Player:
                 if distance_to_closest < self.radius:
                     collision_detected = True
                     break # Do not update position if it would intersect with a rectangle
-
-            # Check if the new position is inside any of the agents
-            for agent in agent_coords:
-                distance_to_closest = math.hypot(new_x - agent[0], new_y - agent[1])
-                if distance_to_closest < 2*CHARACTER_RADIUS:
-                    collision_detected = True
-                    break  # Do not update position if it would intersect with an agent
+            
+            if main_simulation:
+                # Check if the new position is inside any of the agents
+                for agent in agent_coords:
+                    distance_to_closest = math.hypot(new_x - agent[0], new_y - agent[1])
+                    if distance_to_closest < 2*CHARACTER_RADIUS:
+                        collision_detected = True
+                        break  # Do not update position if it would intersect with an agent
 
 
             # Update the player's position
@@ -466,16 +471,50 @@ def generate_agent_constants(agents, homohetero):
     return agent_constants
 
 
+INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
+                    "Click the mouse to move your character.",
+                    "First, navigate your way to the blue cross.",
+                    "Press SPACE to start",
+                    ]
+
+INSTRUCT_2_TEXT = [ "Great!", 
+                    "Now, reach the exit as quickly as possible.",
+                    "Try to collide with as few red agents as possible on your way.",
+                    "Press SPACE to start",
+                    ]
+
+INSTRUCT_FONT = pygame.font.Font(None, 36)
+INSTRUCT_TEXT_COLOR = (0, 0, 0)
+
+
+# Function to display the first instructional screen
+def display_instructional_screen_1(screen):
+    screen.fill(BACKGROUND_COLOR)
+    for i, line in enumerate(INSTRUCT_1_TEXT):
+        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(INSTRUCT_1_TEXT) * text.get_height() // 2 + i * text.get_height()))
+    pygame.display.flip()
+
+# Function to display the second instructional screen
+def display_instructional_screen_2(screen):
+    screen.fill(BACKGROUND_COLOR)
+    for i, line in enumerate(INSTRUCT_2_TEXT):
+        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
+        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(INSTRUCT_2_TEXT) * text.get_height() // 2 + i * text.get_height()))
+    pygame.display.flip()
+
+
 
 # Initialize Pygame
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+#pygame.init()
+#screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Load the background image
 #background = pygame.image.load("Graphics/background.png").convert_alpha()
 
 # Create the player
-player = Player(WIDTH // 2, HEIGHT // 2, CHARACTER_RADIUS)
+#player = Player(WIDTH // 2, HEIGHT // 2, CHARACTER_RADIUS)
+player = Player(10, 375, CHARACTER_RADIUS)
 target_x, target_y = player.x, player.y
 moving = False
 
@@ -591,69 +630,122 @@ else:
 
 # Create the window
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Clickable Character Movement")
+pygame.display.set_caption("Evacuation Simulation")
 
 # Create a clock (For ceiling FPS limit. If the game becomes complex, it may be necessary to implement an FPS floor limit.)
 clock = pygame.time.Clock()
 
+# Display instructional screen 1
+display_instructional_screen_1(screen)
+instructional_screen_1_active = True #True
+instructional_screen_2_active = False
+initial_navigation = False
+main_simulation = False
+
 running = True
 while running:
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
+
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and instructional_screen_1_active:
+            instructional_screen_1_active = False
+            initial_navigation = True
+            VELOCITY = VELOCITY / 15 # Slow down the player for the initial navigation as the simulation is running faster
+
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and instructional_screen_2_active:
+            instructional_screen_2_active = False
+            main_simulation = True
+            VELOCITY = VELOCITY * 15 # Speed up the player for the main simulation as the simulation is running slower
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             target_x, target_y = pygame.mouse.get_pos()
             moving = True
 
-    if moving:
-
-        player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
-        if math.hypot(target_x - player.x, target_y - player.y) < 1:
-            moving = False
+    if instructional_screen_1_active:
+        continue # Skip the rest of the loop if the first instructional screen is active    
 
     # Print the mouse position
     #print(f"Mouse Position: ({pygame.mouse.get_pos()[0]}, {pygame.mouse.get_pos()[1]})")
 
-    # Draw the background
-    #screen.blit(background, (0, 0))
-    screen.fill(BACKGROUND_COLOR)
-            
-    # Draw the rectangles
-    for rect in rectangles:
-        pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
+    if initial_navigation:
+        
+        if moving:
+            player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
+            if math.hypot(target_x - player.x, target_y - player.y) < 1:
+                moving = False
 
-    # Draw the character
-    pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
-    
-    # List of indices of agents that have reached their final target 
-    agents_to_remove = []
+        #Draw the background
+        screen.fill(BACKGROUND_COLOR)
+        # Draw the rectangles
+        for rect in rectangles:
+            pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
+        # Draw the character
+        pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)            
+        # Draw the target
+        cross_size = 10 
+        pygame.draw.line(screen, CROSS_COLOR, (WIDTH // 2 - cross_size, HEIGHT // 2 - cross_size), (WIDTH // 2 + cross_size, HEIGHT // 2 + cross_size), 4)
+        pygame.draw.line(screen, CROSS_COLOR, (WIDTH // 2 - cross_size, HEIGHT // 2 + cross_size), (WIDTH // 2 + cross_size, HEIGHT // 2 - cross_size), 4)
 
-    # Move the agents
-    for i in range(NUMBER_OF_AGENTS):
-        agent = agents[i]
-        pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
-        prev_x, prev_y = agent_coords[i]
-        agent_constant = agent_constants[i]
-        prev_x, prev_y, prev_vel_x, prev_vel_y, agent_target_x, agent_target_y = agent.x, agent.y, agent_velocities[i][0], agent_velocities[i][1], agent_targets[i][0], agent_targets[i][1]
-        agent_x, agent_y, agent_vel_x, agent_vel_y, agent_target_x, agent_target_y = agent.move_towards(
-        prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, agent_constant)
-        agent_coords[i] = (agent_x, agent_y)
-        agent_velocities[i] = (agent_vel_x, agent_vel_y)
-        agent_targets[i] = (agent_target_x, agent_target_y)
+        pygame.display.flip()
 
-        distance_to_final_target = math.hypot(agent_x - agent.route[-1][0], agent_y - agent.route[-1][1])
-        if distance_to_final_target < TARGET_CHANGE_RADIUS:
-            agents_to_remove.append(i)
+        if math.hypot(WIDTH // 2 - player.x, HEIGHT // 2 - player.y) < CHARACTER_RADIUS:
+            initial_navigation = False
+            instructional_screen_2_active = True
 
-    # Remove agent i from all lists if it has reached its final target
-    for i in reversed(agents_to_remove): # Reverse the list of indices to remove to avoid index errors
-        agent_coords.pop(i)
-        agent_velocities.pop(i)
-        agent_targets.pop(i)
-        agent_constant_list.pop(i)
-        agents.pop(i)
-        NUMBER_OF_AGENTS -= 1
-    
+        continue # Skip the rest of the loop if initial navigation is active
+
+    if instructional_screen_2_active:
+        display_instructional_screen_2(screen)
+        continue
+
+    if main_simulation:
+        if moving:
+            player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
+            if math.hypot(target_x - player.x, target_y - player.y) < 1:
+                moving = False
+
+        # Draw the background
+        #screen.blit(background, (0, 0))
+        screen.fill(BACKGROUND_COLOR)
+                
+        # Draw the rectangles
+        for rect in rectangles:
+            pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(rect[0], rect[1], rect[2], rect[3]))
+
+        # Draw the character
+        pygame.draw.circle(screen, CHARACTER_COLOR, (int(player.x), int(player.y)), player.radius)
+        
+        # List of indices of agents that have reached their final target 
+        agents_to_remove = []
+
+        # Move the agents
+        for i in range(NUMBER_OF_AGENTS):
+            agent = agents[i]
+            pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
+            prev_x, prev_y = agent_coords[i]
+            agent_constant = agent_constants[i]
+            prev_x, prev_y, prev_vel_x, prev_vel_y, agent_target_x, agent_target_y = agent.x, agent.y, agent_velocities[i][0], agent_velocities[i][1], agent_targets[i][0], agent_targets[i][1]
+            agent_x, agent_y, agent_vel_x, agent_vel_y, agent_target_x, agent_target_y = agent.move_towards(
+            prev_vel_x, prev_vel_y, rectangles_corners, agent_coords, agent_constant)
+            agent_coords[i] = (agent_x, agent_y)
+            agent_velocities[i] = (agent_vel_x, agent_vel_y)
+            agent_targets[i] = (agent_target_x, agent_target_y)
+
+            distance_to_final_target = math.hypot(agent_x - agent.route[-1][0], agent_y - agent.route[-1][1])
+            if distance_to_final_target < TARGET_CHANGE_RADIUS:
+                agents_to_remove.append(i)
+
+        # Remove agent i from all lists if it has reached its final target
+        for i in reversed(agents_to_remove): # Reverse the list of indices to remove to avoid index errors
+            agent_coords.pop(i)
+            agent_velocities.pop(i)
+            agent_targets.pop(i)
+            agent_constant_list.pop(i)
+            agents.pop(i)
+            NUMBER_OF_AGENTS -= 1
+        
     pygame.display.update()
     clock.tick(FPS)
 
