@@ -503,7 +503,16 @@ def display_instructional_screen_2(screen):
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(INSTRUCT_2_TEXT) * text.get_height() // 2 + i * text.get_height()))
     pygame.display.flip()
 
-
+"""
+# Function to display the final screen
+def display_final_screen(screen, time_taken, collisions):
+    screen.fill(BACKGROUND_COLOR)
+    text = INSTRUCT_FONT.render(f"Time taken: {time_taken:.2f} seconds", True, INSTRUCT_TEXT_COLOR)
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height()))
+    text = INSTRUCT_FONT.render(f"Collisions: {collisions}", True, INSTRUCT_TEXT_COLOR)
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2))
+    pygame.display.flip()
+"""
 
 # Initialize Pygame
 #pygame.init()
@@ -540,7 +549,7 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
 rectangles_corners = [(rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]) for rect in rectangles]
 
 # Define agent coordinates
-agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(player.x, player.y)], 2 * CHARACTER_RADIUS)
+agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(WIDTH//2, HEIGHT//2)], 2 * CHARACTER_RADIUS)
 
 # Initialise agent velocities
 agent_velocities = [(0, 0) for _ in range(NUMBER_OF_AGENTS)]
@@ -637,7 +646,7 @@ clock = pygame.time.Clock()
 
 # Display instructional screen 1
 display_instructional_screen_1(screen)
-instructional_screen_1_active = True #True
+instructional_screen_1_active = True 
 instructional_screen_2_active = False
 initial_navigation = False
 main_simulation = False
@@ -693,6 +702,12 @@ while running:
         if math.hypot(WIDTH // 2 - player.x, HEIGHT // 2 - player.y) < CHARACTER_RADIUS:
             initial_navigation = False
             instructional_screen_2_active = True
+
+            # Reset player's position to the center before main_simulation
+            player.x, player.y = WIDTH // 2, HEIGHT // 2
+            # Reset the target coordinates as well, if needed
+            target_x, target_y = player.x, player.y
+
 
         continue # Skip the rest of the loop if initial navigation is active
 
