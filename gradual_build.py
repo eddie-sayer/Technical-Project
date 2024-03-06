@@ -478,7 +478,7 @@ def generate_agent_constants(agents, homohetero):
 
 INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
                     "Click the mouse to move your character.",
-                    "First, navigate your way to the blue cross.",
+                    "First, navigate your way to the red cross.",
                     "Press SPACE to start",
                     ]
 
