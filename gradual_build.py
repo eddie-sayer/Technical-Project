@@ -67,6 +67,7 @@ ROUTE_B = [ROUTE_B_TARGET_1, ROUTE_B_TARGET_2, ROUTE_B_TARGET_3, ROUTE_B_TARGET_
 
 # Initialize Pygame
 pygame.init()
+game_start = pygame.time.get_ticks()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 """
@@ -486,6 +487,8 @@ INSTRUCT_2_TEXT = [ "Great!",
 INSTRUCT_FONT = pygame.font.Font(None, 36)
 INSTRUCT_TEXT_COLOR = (0, 0, 0)
 
+TIMER_FONT = pygame.font.Font(None, 36)
+TIMER_TEXT_COLOR = (0, 0, 0)
 
 # Function to display the first instructional screen
 def display_instructional_screen_1(screen):
@@ -650,6 +653,7 @@ instructional_screen_1_active = True
 instructional_screen_2_active = False
 initial_navigation = False
 main_simulation = False
+agents_present = True
 
 running = True
 while running:
@@ -667,6 +671,7 @@ while running:
             instructional_screen_2_active = False
             main_simulation = True
             VELOCITY = VELOCITY * 15 # Speed up the player for the main simulation as the simulation is running slower
+            main_simulation_start = pygame.time.get_ticks() # Start the timer for the main simulation
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             target_x, target_y = pygame.mouse.get_pos()
@@ -716,6 +721,11 @@ while running:
         continue
 
     if main_simulation:
+
+        if agents_present:
+            current_time = pygame.time.get_ticks()
+            elapsed_time = (current_time - main_simulation_start) / 1000 # Elapsed time in seconds
+
         if moving:
             player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
             if math.hypot(target_x - player.x, target_y - player.y) < 1:
@@ -760,7 +770,16 @@ while running:
             agent_constant_list.pop(i)
             agents.pop(i)
             NUMBER_OF_AGENTS -= 1
+
+        # Draw the timer
+        timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
+        screen.blit(timer_text, (10, 10))
         
+        # Check if all agents have reached their final target
+        if len(agents) == 0:
+            agents_present = False
+            main_simulation_end = pygame.time.get_ticks() # End the timer for the main simulation
+
     pygame.display.update()
     clock.tick(FPS)
 
