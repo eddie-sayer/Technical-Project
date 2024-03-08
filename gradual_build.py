@@ -52,7 +52,7 @@ CHARACTER_RADIUS = 6 #10 is the desired atm
 VELOCITY = 1.34    # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 80  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 80 # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 #TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
@@ -463,7 +463,7 @@ def generate_agent_constants(agents, homohetero):
             agent_constants.append(constants)
 
     elif homohetero == "hetero":
-
+        """
         for agent in agents:
 
             v_0 = random.gauss(1.34, 0.26) * 1000
@@ -479,6 +479,143 @@ def generate_agent_constants(agents, homohetero):
             R_b = 70
             A_p = 4000
             B_p = 0.1 * 150
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+        """
+        third = int(NUMBER_OF_AGENTS / 3)
+        for agent in agents[0:third]:
+            
+            #Young
+
+            v_0 = 1 * 1000 # Desired speed
+            T_alpha = 0.4 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -3000 # Noise lower bound
+            N_ub = 3000 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+        for agent in agents[third:2*third]:
+            
+            #Middle aged
+
+            v_0 = 1.34 * 1000 # Desired speed
+            T_alpha = 0.55 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -1000 # Noise lower bound
+            N_ub = 1000 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+            
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+        for agent in agents[2*third:]:
+            
+            #Old
+
+            v_0 = 1 * 1000 # Desired speed
+            T_alpha = 0.7 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -200 # Noise lower bound
+            N_ub = 200 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+
+    elif homohetero == "test":
+
+        third = int(NUMBER_OF_AGENTS / 3)
+        for agent in agents[0:third]:
+            
+            #Young
+
+            v_0 = 1 * 1000 # Desired speed
+            T_alpha = 0.4 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -3000 # Noise lower bound
+            N_ub = 3000 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+        for agent in agents[third:2*third]:
+            
+            #Middle aged
+
+            v_0 = 1.34 * 1000 # Desired speed
+            T_alpha = 0.55 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -1000 # Noise lower bound
+            N_ub = 1000 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+            
+            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
+
+            agent_constants.append(constants)
+
+        for agent in agents[2*third:]:
+            
+            #Old
+
+            v_0 = 1 * 1000 # Desired speed
+            T_alpha = 0.7 # Relaxation time
+            A_b = 10 * 500 # Boundary interaction strength
+            B_b = 0.1 * 150 # Boundary interaction range    
+            A_s = 2.3 * 1000 # Social interaction strength
+            B_s = 0.3 * 150 # Social interaction range
+            N_lb = -200 # Noise lower bound
+            N_ub = 200 # Noise upper bound
+            m = 1   # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force
+            A_p = 4000 # Physical interaction strength
+            B_p = 0.1 * 150 # Physical interaction range
+
             constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
 
             agent_constants.append(constants)
@@ -654,31 +791,14 @@ elif SELECTED_TREATMENT == "HA":
 
 elif SELECTED_TREATMENT == "T":
 
-    agent_targets = route_split(agents, agent_coords, 80)
+    agent_targets = route_split(agents, agent_coords, 50)
 
-    agent_constants = generate_agent_constants(agents, "hetero")
+    agent_constants = generate_agent_constants(agents, "test")
 
     agent_constant_list = []
 
     for i in range(NUMBER_OF_AGENTS):
         agent_constant_list.append(agent_constants[i])
-
-    """
-    v_0 = 1.34 * 1000   # Desired speed
-    T_alpha = 0.5       # Relaxation time ('smaller values make the agents walk mmore aggressively')
-    A_b = 10 * 500      # Boundary interaction strength
-    B_b = 0.1 * 150     # Boundary interaction range
-    A_s = 2.3 * 1000    # Social interaction strength (Interpreted from paper, not concrete. Helbing's paper uses these terms, but without a physcial component.)
-    B_s = 0.3 * 150     # Social interaction range
-
-    N_lb = -0.5        # Noise lower bound
-    N_ub = 0.5         # Noise upper bound         # 5000 gives noticable noise. 0.5-5000 noise
-    m = 1               # Mass of the agent
-    R_s = 100           # Radius of the social force
-    R_b = 70            # Radius of the boundary force
-    A_p = 4000          # Physical interaction strength
-    B_p = 0.1 * 150     # Physical interaction range
-    """
 
 else:
     raise ValueError("Invalid treatment selected")
