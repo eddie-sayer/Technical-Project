@@ -29,39 +29,49 @@ All other terms are kept constant across all agents.
 - The mass of the agent is a random value between 0.8 and 1.2.
 """
 
-SELECTED_TREATMENT = "HA" # Choose from "C", "H", "A", "HA" (or "T" for testing)
+# Add general information at the start of the simulation (what kind of data, indicating consent, fully anonymous, etc.)
+# Could email around, set the treatment before email. Tell them I'm gonna delete the email, preserve anonymity.
+# Create a separate document, offer to give to people who play on your laptop. Email PDF.
+# Informed consent, the right to withdraw from the research. Just be clear to people on this. 
+# Prescribe paratemter values specifically.
+# The time the player spends away from the doors before they decide to exit.
+# Just have the stats write to a file
+# Record all agent and player paths.
+# Send a report draft during Easter.
 
+
+SELECTED_TREATMENT = "C"
 # Constants
 WIDTH, HEIGHT = 900, 750
 SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
-BACKGROUND_COLOR = (255, 255, 255)
+BACKGROUND_COLOR = (255, 255, 205)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
 CROSS_COLOR = (255, 0, 0)
-CHARACTER_RADIUS = 7 #10 is the desired atm
-VELOCITY = 1.34   # Desired speed of the player
+CHARACTER_RADIUS = 6 #10 is the desired atm
+VELOCITY = 1.34    # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
-NUMBER_OF_AGENTS = 100  # Number of agents in the simulation
+NUMBER_OF_AGENTS = 80  # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
-TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
+#TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
 # Targets
-ROUTE_A_TARGET_1 = (780, 200)
-ROUTE_A_TARGET_2 = (780, 80)
-ROUTE_A_TARGET_3 = (220, 80)
-ROUTE_A_TARGET_4 = (130, 80)
-ROUTE_A_TARGET_5 = (60, 375)
-ROUTE_A_TARGET_6 = (10, 375)
+ROUTE_A_TARGET_1 = (790, 200, 20) # (x, y, TARGET CHANGE RADIUS) #(780, 200, 20)
+ROUTE_A_TARGET_2 = (790, 80, 3 * CHARACTER_RADIUS) # (780, 80, 3 * CHARACTER_RADIUS)
+ROUTE_A_TARGET_3 = (205, 80, 15) # (220, 80, 3 * CHARACTER_RADIUS)
+ROUTE_A_TARGET_4 = (130, 80, 3 * CHARACTER_RADIUS)
+ROUTE_A_TARGET_5 = (60, 375, 3 * CHARACTER_RADIUS)
+ROUTE_A_TARGET_6 = (10, 375, 3 * CHARACTER_RADIUS)
 
 ROUTE_A = [ROUTE_A_TARGET_1, ROUTE_A_TARGET_2, ROUTE_A_TARGET_3, ROUTE_A_TARGET_4, ROUTE_A_TARGET_5, ROUTE_A_TARGET_6]
 
-ROUTE_B_TARGET_1 = (780, 550)
-ROUTE_B_TARGET_2 = (780, 670)
-ROUTE_B_TARGET_3 = (220, 670)
-ROUTE_B_TARGET_4 = (130, 670)
-ROUTE_B_TARGET_5 = (60, 375)
-ROUTE_B_TARGET_6 = (10, 375)
+ROUTE_B_TARGET_1 = (790, 550, 20) # (780, 550, 20)
+ROUTE_B_TARGET_2 = (790, 670, 3 * CHARACTER_RADIUS) # (780, 670, 3 * CHARACTER_RADIUS)
+ROUTE_B_TARGET_3 = (205, 670, 15) # (220, 670, 3 * CHARACTER_RADIUS)
+ROUTE_B_TARGET_4 = (130, 670, 3 * CHARACTER_RADIUS)
+ROUTE_B_TARGET_5 = (60, 375, 3 * CHARACTER_RADIUS)
+ROUTE_B_TARGET_6 = (10, 375, 3 * CHARACTER_RADIUS)
 
 ROUTE_B = [ROUTE_B_TARGET_1, ROUTE_B_TARGET_2, ROUTE_B_TARGET_3, ROUTE_B_TARGET_4, ROUTE_B_TARGET_5, ROUTE_B_TARGET_6]
 
@@ -308,7 +318,7 @@ class Agent:
         # Calculate the boundary force
         FB = self.calculate_boundary_force(rectangles, constants)
 
-        agent_target_x, agent_target_y = self.route[self.current_target]
+        agent_target_x, agent_target_y, TARGET_CHANGE_RADIUS = self.route[self.current_target]
 
         # Calculate the target force
         distance_to_target = math.hypot(agent_target_x - self.x, agent_target_y - self.y)
@@ -374,7 +384,7 @@ class Agent:
 
         if distance_to_target < TARGET_CHANGE_RADIUS: # 2 * CHARACTER_RADIUS is the original value
             self.current_target += 1
-            agent_target_x, agent_target_y = self.route[self.current_target]
+            agent_target_x, agent_target_y = self.route[self.current_target][0], self.route[self.current_target][1]
 
         return self.x, self.y, velocity_x, velocity_y, agent_target_x, agent_target_y # Return the new position and velocity of the agent
 
@@ -428,26 +438,26 @@ def route_split(agents, agent_coords, route_a_percentage):
 
 # Function to generate agent constants
 def generate_agent_constants(agents, homohetero):
-
+    
     agent_constants = []
     
     if homohetero == "homo":
         
         for agent in agents:
 
-            v_0 = 1.34 * 1000
-            T_alpha = 0.5
-            A_b = 10 * 500
-            B_b = 0.1 * 150
-            A_s = 2.3 * 1000
-            B_s = 0.3 * 150
-            N_lb = -0.5
-            N_ub = 0.5
-            m = 1
-            R_s = 100
-            R_b = 70
-            A_p = 4000
-            B_p = 0.1 * 150
+            v_0 = 1.34 * 1000 # Desired speed
+            T_alpha = 0.5 # Relaxation time
+            A_b = 50 * 500 # Boundary interaction strength 
+            B_b = 5 #0.1 * 150 # Boundary interaction range
+            A_s = 2.3 * 500 # * 1000 # Social interaction strength
+            B_s = 0.1 * 150 # 0.3 * 150 # Social interaction range
+            N_lb = -500 #-0.5 # Noise lb
+            N_ub = 500 #0.5 Noise ub
+            m = 1 # Mass of the agent
+            R_s = 100 # Radius of the social force
+            R_b = 70 # Radius of the boundary force 
+            A_p = 4000 # Social physical interaction strength 
+            B_p = 0.1 * 150 # Social physical interaction range 
             constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
 
             agent_constants.append(constants)
@@ -573,11 +583,11 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
     (0, 415, 40, 335),
     (200, 590, 550, 40),
     (200, 120, 550, 40),
-    (810, 120, 50, 40),
-    (810, 590, 50, 40), #
-    (160, 100, 40, 550),
-    (160, 690, 40, 20), #
-    (160, 40, 40, 20), #
+    (830, 120, 30, 40), #(810, 120, 50, 40)
+    (830, 590, 30, 40), #(810, 590, 50, 40)
+    (160, 105, 40, 540), #(160, 100, 40, 550)
+    (160, 695, 40, 15), #(160, 690, 40, 20)
+    (160, 40, 40, 15), #(160, 40, 40, 20)
 ]
 
 # Rectangles in the (x1, y1, x2, y2) format
@@ -681,11 +691,11 @@ pygame.display.set_caption("Evacuation Simulation")
 clock = pygame.time.Clock()
 
 # Display instructional screen 1
-display_instructional_screen_1(screen)
-instructional_screen_1_active = True 
+#display_instructional_screen_1(screen)
+instructional_screen_1_active = False #True 
 instructional_screen_2_active = False
 initial_navigation = False
-main_simulation = False
+main_simulation = True #False
 agents_present = True
 player_present = True
 final_screen = False
@@ -759,7 +769,7 @@ while running:
 
         if agents_present:
             current_time = pygame.time.get_ticks()
-            elapsed_time = (current_time - main_simulation_start) / 1000 # Elapsed time in seconds
+            #elapsed_time = (current_time - main_simulation_start) / 1000 # Elapsed time in seconds
 
         if moving:
             player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
@@ -800,7 +810,7 @@ while running:
             agent_targets[i] = (agent_target_x, agent_target_y)
 
             distance_to_final_target = math.hypot(agent_x - agent.route[-1][0], agent_y - agent.route[-1][1])
-            if distance_to_final_target < TARGET_CHANGE_RADIUS:
+            if distance_to_final_target < ROUTE_A_TARGET_6[2]:
                 agents_to_remove.append(i)
 
         # Remove agent i from all lists if it has reached its final target
@@ -813,7 +823,7 @@ while running:
             NUMBER_OF_AGENTS -= 1
 
         player_distance_to_final_target = math.hypot(player.x - ROUTE_A_TARGET_6[0], player.y - ROUTE_A_TARGET_6[1])
-        if player_distance_to_final_target < TARGET_CHANGE_RADIUS:
+        if player_distance_to_final_target < ROUTE_A_TARGET_6[2]:
             player_present = False
 
         if player_present == False:
@@ -823,8 +833,8 @@ while running:
             display_target_reached(screen)
 
         # Draw the timer
-        timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
-        screen.blit(timer_text, (10, 10))
+        #timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
+        #screen.blit(timer_text, (10, 10))
         
         # Check if all agents have reached their final target
         if len(agents) == 0:
