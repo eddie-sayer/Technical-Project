@@ -49,7 +49,7 @@ CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
 CROSS_COLOR = (255, 0, 0)
 CHARACTER_RADIUS = 6 #10 is the desired atm
-VELOCITY = 1.34    # Desired speed of the player
+VELOCITY = 1 #1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
 NUMBER_OF_AGENTS = 80 # Number of agents in the simulation
@@ -446,13 +446,13 @@ def generate_agent_constants(agents, homohetero):
         for agent in agents:
 
             v_0 = 1.34 * 1000 # Desired speed
-            T_alpha = 0.5 # Relaxation time
-            A_b = 50 * 500 # Boundary interaction strength 
-            B_b = 5 #0.1 * 150 # Boundary interaction range
-            A_s = 2.3 * 500 # * 1000 # Social interaction strength
-            B_s = 0.1 * 150 # 0.3 * 150 # Social interaction range
-            N_lb = -500 #-0.5 # Noise lb
-            N_ub = 500 #0.5 Noise ub
+            T_alpha = 0.55 #0.5 # Relaxation time
+            A_b = 10 * 500  #50 Boundary interaction strength 
+            B_b = 0.1 * 150 #5 #0.1 * 150 # Boundary interaction range
+            A_s = 2.3 * 1000 #2.3 * 500 # * 1000 # Social interaction strength
+            B_s = 0.3 * 150 #0.1 * 150 # 0.3 * 150 # Social interaction range
+            N_lb = -1000 #-500 #-0.5 # Noise lb
+            N_ub = 1000 #500 #0.5 Noise ub
             m = 1 # Mass of the agent
             R_s = 100 # Radius of the social force
             R_b = 70 # Radius of the boundary force 
@@ -639,16 +639,15 @@ CONGRATS_TEXT = [   "Congratulations!",
                     "You have reached the exit!",
                     "Let's wait for the other agents to evacuate.",
                     ]
-
+"""
 END_STATS_TEXT = [ "Evacuation complete!",
-                    "Time taken (player): ",
-                    "Time taken (everyone): ",
+                    "Time taken (player): " + str(evac_time) + " seconds",
                     "Collisions: ",
                     "Click counter: ",
                     "Route choice: ",
                     "You may now close the window.",
                     ]
-
+"""
 INSTRUCT_FONT = pygame.font.Font(None, 36)
 INSTRUCT_TEXT_COLOR = (0, 0, 0)
 
@@ -676,14 +675,14 @@ def display_target_reached(screen):
     for i, line in enumerate(CONGRATS_TEXT):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(CONGRATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
-
+"""
 # Function to display the final screen
 def display_final_screen(screen):
     screen.fill(BACKGROUND_COLOR)
     for i, line in enumerate(END_STATS_TEXT):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(END_STATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
-
+"""
 
 
 """
@@ -811,14 +810,18 @@ pygame.display.set_caption("Evacuation Simulation")
 clock = pygame.time.Clock()
 
 # Display instructional screen 1
-#display_instructional_screen_1(screen)
-instructional_screen_1_active = False #True 
+display_instructional_screen_1(screen)
+instructional_screen_1_active = True #True 
 instructional_screen_2_active = False
 initial_navigation = False
-main_simulation = True #False
-agents_present = True
+main_simulation = False #False
+#agents_present = True
 player_present = True
 final_screen = False
+collisions = 0
+collison_occurred = [False] * NUMBER_OF_AGENTS
+
+# Game loop
 
 running = True
 while running:
@@ -887,9 +890,9 @@ while running:
 
     if main_simulation:
 
-        if agents_present:
+        if player_present:
             current_time = pygame.time.get_ticks()
-            #elapsed_time = (current_time - main_simulation_start) / 1000 # Elapsed time in seconds
+            elapsed_time = (current_time - main_simulation_start) / 1000 # Elapsed time in seconds
 
         if moving:
             player.move_towards(target_x, target_y, rectangles_corners, agent_coords)
@@ -919,6 +922,15 @@ while running:
         # Move the agents
         for i in range(NUMBER_OF_AGENTS):
             agent = agents[i]
+
+            # Collision counter
+            distance_to_player = math.hypot(player.x - agent_coords[i][0], player.y - agent_coords[i][1])
+            if collison_occurred[i] == False and distance_to_player <= 2.5 * CHARACTER_RADIUS:
+                collisions += 1
+                collison_occurred[i] = True
+            if distance_to_player > 2.5 * CHARACTER_RADIUS:
+                collison_occurred[i] = False
+
             pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
             prev_x, prev_y = agent_coords[i]
             agent_constant = agent_constants[i]
@@ -933,12 +945,16 @@ while running:
             if distance_to_final_target < ROUTE_A_TARGET_6[2]:
                 agents_to_remove.append(i)
 
+
+        
+
         # Remove agent i from all lists if it has reached its final target
         for i in reversed(agents_to_remove): # Reverse the list of indices to remove to avoid index errors
             agent_coords.pop(i)
             agent_velocities.pop(i)
             agent_targets.pop(i)
             agent_constant_list.pop(i)
+            collison_occurred.pop(i)
             agents.pop(i)
             NUMBER_OF_AGENTS -= 1
 
@@ -946,25 +962,54 @@ while running:
         if player_distance_to_final_target < ROUTE_A_TARGET_6[2]:
             player_present = False
 
+        font = pygame.font.Font(None, 36)
+
         if player_present == False:
-            #font = pygame.font.Font(None, 36)
+            
             #message = font.render("Congratulations! Now we wait for everyone else.", True, (0, 0, 0))
             #screen.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
-            display_target_reached(screen)
+            #display_target_reached(screen)
+            main_simulation = False
+            final_screen = True
+            main_simulation_end = pygame.time.get_ticks()
 
         # Draw the timer
-        #timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
-        #screen.blit(timer_text, (10, 10))
+        timer_text = TIMER_FONT.render(f"Time: {elapsed_time:.2f}", True, TIMER_TEXT_COLOR)
+        screen.blit(timer_text, (10, 10))
+
+        # Draw the collision counter
+        collision_text = TIMER_FONT.render(f"Collisions: {collisions}", True, TIMER_TEXT_COLOR)
+        screen.blit(collision_text, (700, 10))
         
+        """
         # Check if all agents have reached their final target
         if len(agents) == 0:
-            agents_present = False
+            #agents_present = False
             main_simulation = False
             final_screen = True
             main_simulation_end = pygame.time.get_ticks() # End the timer for the main simulation
+        """
+        if player_present == False:
+            main_simulation = False
+            final_screen = True
+            main_simulation_end = pygame.time.get_ticks()
 
     if final_screen:
-        display_final_screen(screen)
+        evac_time = (main_simulation_end - main_simulation_start) / 1000
+        #display_final_screen(screen, evac_time)
+        END_STATS_TEXT = [ "Evacuation complete!",
+                    "Time taken (player): " + str(evac_time) + " seconds",
+                    "Collisions: " + str(collisions),
+                    "Click counter: ",
+                    "Route choice: ",
+                    "You may now close the window.",
+                    ]
+        screen.fill(BACKGROUND_COLOR)
+        for i, line in enumerate(END_STATS_TEXT):
+            text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
+            screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(END_STATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
+
+        
 
     pygame.display.update()
     clock.tick(FPS)
