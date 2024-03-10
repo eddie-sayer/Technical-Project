@@ -382,6 +382,11 @@ class Agent:
             velocity_x = velocity_x_new
             velocity_y = velocity_y_new
 
+        velocity_magnitude = math.hypot(velocity_x, velocity_y) # Caps actual speed at 1.3 * v_0
+        if velocity_magnitude > 1.05 * v_0:
+            velocity_x = (1.05 * v_0 / velocity_magnitude) * velocity_x
+            velocity_y = (1.05 * v_0 / velocity_magnitude) * velocity_y
+
         if distance_to_target < TARGET_CHANGE_RADIUS: # 2 * CHARACTER_RADIUS is the original value
             self.current_target += 1
             agent_target_x, agent_target_y = self.route[self.current_target][0], self.route[self.current_target][1]
