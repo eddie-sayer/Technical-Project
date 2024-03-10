@@ -926,10 +926,13 @@ while running:
         pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 + cross_size), (10 + cross_size, 375 - cross_size), 4)
 
         # Determine player route choice#
-        if player.x > ROUTE_CHOICE_A_RECT[0] and player.y > ROUTE_CHOICE_A_RECT[1] and player.x < ROUTE_CHOICE_A_RECT[2] and player.y < ROUTE_CHOICE_A_RECT[3]:
-            route_choice = "A"
-        elif player.x > ROUTE_CHOICE_B_RECT[0] and player.y > ROUTE_CHOICE_B_RECT[1] and player.x < ROUTE_CHOICE_B_RECT[2] and player.y < ROUTE_CHOICE_B_RECT[3]:
-            route_choice = "B"
+        if route_choice == None:
+            if player.x > ROUTE_CHOICE_A_RECT[0] and player.y > ROUTE_CHOICE_A_RECT[1] and player.x < ROUTE_CHOICE_A_RECT[2] and player.y < ROUTE_CHOICE_A_RECT[3]:
+                route_choice = "A"
+                choice_made_time = pygame.time.get_ticks()
+            elif player.x > ROUTE_CHOICE_B_RECT[0] and player.y > ROUTE_CHOICE_B_RECT[1] and player.x < ROUTE_CHOICE_B_RECT[2] and player.y < ROUTE_CHOICE_B_RECT[3]:
+                route_choice = "B"
+                choice_made_time = pygame.time.get_ticks()
         
         # List of indices of agents that have reached their final target 
         agents_to_remove = []
@@ -995,15 +998,7 @@ while running:
         # Draw the collision counter
         collision_text = TIMER_FONT.render(f"Collisions: {collisions}", True, TIMER_TEXT_COLOR)
         screen.blit(collision_text, (700, 10))
-        
-        """
-        # Check if all agents have reached their final target
-        if len(agents) == 0:
-            #agents_present = False
-            main_simulation = False
-            final_screen = True
-            main_simulation_end = pygame.time.get_ticks() # End the timer for the main simulation
-        """
+
         if player_present == False:
             main_simulation = False
             final_screen = True
@@ -1011,12 +1006,14 @@ while running:
 
     if final_screen:
         evac_time = (main_simulation_end - main_simulation_start) / 1000
+        indecisive_time = (choice_made_time - main_simulation_start) / 1000
         #display_final_screen(screen, evac_time)
         END_STATS_TEXT = [ "Evacuation complete!",
                     "Time taken (player): " + str(evac_time) + " seconds",
                     "Collisions: " + str(collisions),
                     "Click counter: " + str(clicks),
                     "Route choice: " + str(route_choice),
+                    "Time to leave starting room: " + str(indecisive_time) + " seconds",
                     "You may now close the window.",
                     ]
         screen.fill(BACKGROUND_COLOR)
