@@ -2,6 +2,7 @@ import pygame
 import sys
 import math
 import random
+import numpy as np
 
 """
 This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter of 0.5 meters (20 pixels).
@@ -174,13 +175,17 @@ class Player:
 
 
 # Agent class
+#agent_count = 0
 class Agent:
-    def __init__(self, x, y, radius):
+    def __init__(self, x, y, radius, index):
+        #global agent_count
+        #agent_count += 1
         self.x = x
         self.y = y
         self.radius = radius
+        self.index = index
         self.current_target = 0
-        self.route = [] 
+        self.route = []
 
     def calculate_social_force(self, agent_coords, constants, x_closest_agents=X_CLOSEST_AGENTS):
 
@@ -644,15 +649,7 @@ CONGRATS_TEXT = [   "Congratulations!",
                     "You have reached the exit!",
                     "Let's wait for the other agents to evacuate.",
                     ]
-"""
-END_STATS_TEXT = [ "Evacuation complete!",
-                    "Time taken (player): " + str(evac_time) + " seconds",
-                    "Collisions: ",
-                    "Click counter: ",
-                    "Route choice: ",
-                    "You may now close the window.",
-                    ]
-"""
+
 INSTRUCT_FONT = pygame.font.Font(None, 36)
 INSTRUCT_TEXT_COLOR = (0, 0, 0)
 
@@ -680,26 +677,6 @@ def display_target_reached(screen):
     for i, line in enumerate(CONGRATS_TEXT):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(CONGRATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
-"""
-# Function to display the final screen
-def display_final_screen(screen):
-    screen.fill(BACKGROUND_COLOR)
-    for i, line in enumerate(END_STATS_TEXT):
-        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
-        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(END_STATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
-"""
-
-
-"""
-# Function to display the final screen
-def display_final_screen(screen, time_taken, collisions):
-    screen.fill(BACKGROUND_COLOR)
-    text = INSTRUCT_FONT.render(f"Time taken: {time_taken:.2f} seconds", True, INSTRUCT_TEXT_COLOR)
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height()))
-    text = INSTRUCT_FONT.render(f"Collisions: {collisions}", True, INSTRUCT_TEXT_COLOR)
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2))
-    pygame.display.flip()
-"""
 
 # Initialize Pygame
 #pygame.init()
@@ -746,7 +723,7 @@ agent_coords = generate_agent_positions(NUMBER_OF_AGENTS, SPAWN_BOX_COORDS, [(WI
 agent_velocities = [(0, 0) for _ in range(NUMBER_OF_AGENTS)]
 
 # Create agents
-agents = [Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS) for i in range(NUMBER_OF_AGENTS)]
+agents = [Agent(agent_coords[i][0], agent_coords[i][1], CHARACTER_RADIUS, i) for i in range(NUMBER_OF_AGENTS)]
 
 # Apply treatments
 if SELECTED_TREATMENT == "C":
@@ -829,8 +806,14 @@ player_present = True
 final_screen = False
 collisions = 0
 collison_occurred = [False] * NUMBER_OF_AGENTS
+original_indices = list(range(NUMBER_OF_AGENTS))
 clicks = 0
 route_choice = None
+data_records = [[] for _ in range(NUMBER_OF_AGENTS)]
+removed_indices = []
+counter = 0
+reset_counter = False
+print_perhaps = True
 
 # Game loop
 
@@ -895,7 +878,6 @@ while running:
             # Reset the target coordinates as well, if needed
             target_x, target_y = player.x, player.y
 
-
         continue # Skip the rest of the loop if initial navigation is active
 
     if instructional_screen_2_active:
@@ -903,6 +885,8 @@ while running:
         continue
 
     if main_simulation:
+        
+        counter += 1
 
         if player_present:
             current_time = pygame.time.get_ticks()
@@ -930,7 +914,7 @@ while running:
         pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 - cross_size), (10 + cross_size, 375 + cross_size), 4)
         pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 + cross_size), (10 + cross_size, 375 - cross_size), 4)
 
-        # Determine player route choice#
+        # Determine player route choice
         if route_choice == None:
             if player.x > ROUTE_CHOICE_A_RECT[0] and player.y > ROUTE_CHOICE_A_RECT[1] and player.x < ROUTE_CHOICE_A_RECT[2] and player.y < ROUTE_CHOICE_A_RECT[3]:
                 route_choice = "A"
@@ -954,6 +938,10 @@ while running:
             if distance_to_player > 2.5 * CHARACTER_RADIUS:
                 collison_occurred[i] = False
 
+            if counter == 60:
+                data_records[agent.index].append((agent_coords[i][0], agent_coords[i][1], agent_velocities[i][0], agent_velocities[i][1]))
+                reset_counter = True
+
             pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
             prev_x, prev_y = agent_coords[i]
             agent_constant = agent_constants[i]
@@ -967,7 +955,7 @@ while running:
             distance_to_final_target = math.hypot(agent_x - agent.route[-1][0], agent_y - agent.route[-1][1])
             if distance_to_final_target < ROUTE_A_TARGET_6[2]:
                 agents_to_remove.append(i)
-
+                removed_indices.append(agent.index)
 
         
 
@@ -980,6 +968,15 @@ while running:
             collison_occurred.pop(i)
             agents.pop(i)
             NUMBER_OF_AGENTS -= 1
+
+        if counter == 60:
+            for i in removed_indices:
+                data_records[i].append((None,None,None,None))
+            reset_counter = True
+
+        if reset_counter:
+            counter = 0
+            reset_counter = False
 
         player_distance_to_final_target = math.hypot(player.x - ROUTE_A_TARGET_6[0], player.y - ROUTE_A_TARGET_6[1])
         if player_distance_to_final_target < ROUTE_A_TARGET_6[2]:
@@ -1010,6 +1007,9 @@ while running:
             main_simulation_end = pygame.time.get_ticks()
 
     if final_screen:
+        if print_perhaps == True:
+            print(data_records)
+            print_perhaps = False
         evac_time = (main_simulation_end - main_simulation_start) / 1000
         indecisive_time = (choice_made_time - main_simulation_start) / 1000
         #display_final_screen(screen, evac_time)
