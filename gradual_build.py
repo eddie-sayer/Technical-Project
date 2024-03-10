@@ -809,7 +809,7 @@ collison_occurred = [False] * NUMBER_OF_AGENTS
 original_indices = list(range(NUMBER_OF_AGENTS))
 clicks = 0
 route_choice = None
-data_records = [[] for _ in range(NUMBER_OF_AGENTS)]
+data_records = [[] for _ in range(NUMBER_OF_AGENTS + 1)]
 removed_indices = []
 counter = 0
 reset_counter = False
@@ -939,7 +939,7 @@ while running:
                 collison_occurred[i] = False
 
             if counter == 60:
-                data_records[agent.index].append((agent_coords[i][0], agent_coords[i][1], agent_velocities[i][0], agent_velocities[i][1]))
+                data_records[agent.index + 1].append((round(agent_coords[i][0], 3), round(agent_coords[i][1], 3), round(agent_velocities[i][0], 3), round(agent_velocities[i][1], 3)))
                 reset_counter = True
 
             pygame.draw.circle(screen, AGENT_COLOR, agent_coords[i], CHARACTER_RADIUS) # Draw the agent
@@ -970,8 +970,9 @@ while running:
             NUMBER_OF_AGENTS -= 1
 
         if counter == 60:
+            data_records[0].append((round(player.x, 3), round(player.y, 3), None, None))
             for i in removed_indices:
-                data_records[i].append((None,None,None,None))
+                data_records[i + 1].append((None,None,None,None))
             reset_counter = True
 
         if reset_counter:
