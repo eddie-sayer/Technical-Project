@@ -725,6 +725,10 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
     (160, 695, 40, 15), #(160, 690, 40, 20)
     (160, 40, 40, 15), #(160, 40, 40, 20)
 ]
+#Make sure to change manually if the doorways are changed
+#When the player enters one of these rectangles, the route choice is noted
+ROUTE_CHOICE_A_RECT = (750, 40, 830, 160) # (x1,y1,x2,y2)
+ROUTE_CHOICE_B_RECT = (750, 590, 830, 710) # (x1,y1,x2,y2)
 
 # Rectangles in the (x1, y1, x2, y2) format
 
@@ -820,6 +824,8 @@ player_present = True
 final_screen = False
 collisions = 0
 collison_occurred = [False] * NUMBER_OF_AGENTS
+clicks = 0
+route_choice = None
 
 # Game loop
 
@@ -844,6 +850,9 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             target_x, target_y = pygame.mouse.get_pos()
             moving = True
+            if main_simulation:
+                clicks += 1
+
 
     if instructional_screen_1_active:
         continue # Skip the rest of the loop if the first instructional screen is active    
@@ -915,6 +924,12 @@ while running:
         cross_size = 10 
         pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 - cross_size), (10 + cross_size, 375 + cross_size), 4)
         pygame.draw.line(screen, CROSS_COLOR, (10 - cross_size, 375 + cross_size), (10 + cross_size, 375 - cross_size), 4)
+
+        # Determine player route choice#
+        if player.x > ROUTE_CHOICE_A_RECT[0] and player.y > ROUTE_CHOICE_A_RECT[1] and player.x < ROUTE_CHOICE_A_RECT[2] and player.y < ROUTE_CHOICE_A_RECT[3]:
+            route_choice = "A"
+        elif player.x > ROUTE_CHOICE_B_RECT[0] and player.y > ROUTE_CHOICE_B_RECT[1] and player.x < ROUTE_CHOICE_B_RECT[2] and player.y < ROUTE_CHOICE_B_RECT[3]:
+            route_choice = "B"
         
         # List of indices of agents that have reached their final target 
         agents_to_remove = []
@@ -1000,8 +1015,8 @@ while running:
         END_STATS_TEXT = [ "Evacuation complete!",
                     "Time taken (player): " + str(evac_time) + " seconds",
                     "Collisions: " + str(collisions),
-                    "Click counter: ",
-                    "Route choice: ",
+                    "Click counter: " + str(clicks),
+                    "Route choice: " + str(route_choice),
                     "You may now close the window.",
                     ]
         screen.fill(BACKGROUND_COLOR)
