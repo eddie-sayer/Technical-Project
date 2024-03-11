@@ -35,10 +35,10 @@ All other terms are kept constant across all agents.
 # Could email around, set the treatment before email. Tell them I'm gonna delete the email, preserve anonymity.
 # Create a separate document, offer to give to people who play on your laptop. Email PDF.
 # Informed consent, the right to withdraw from the research. Just be clear to people on this. 
-# Prescribe paratemter values specifically.
-# The time the player spends away from the doors before they decide to exit.
-# Just have the stats write to a file
-# Record all agent and player paths.
+## Prescribe paratemter values specifically.
+## The time the player spends away from the doors before they decide to exit.
+## Just have the stats write to a file
+## Record all agent and player paths.
 # Send a report draft during Easter.
 
 
@@ -633,22 +633,23 @@ def generate_agent_constants(agents, homohetero):
 
     return agent_constants
 
-
 INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
+                    " ",
+                    "Empirical data will be collected for research purposes only.",
+                    "The data will be fully anonymous and not shared with anyone else.",
+                    "You have the right to withdraw from the research at any time.",
+                    "Simply close the window to withdraw from the experiment.",
+                    " ",
                     "Click the mouse to move your character.",
-                    "First, navigate your way to the red cross.",
+                    "First, navigate your way to the red cross.",   
+                    " ",                   
                     "Press SPACE to start",
-                    ]
+                   ]
 
 INSTRUCT_2_TEXT = [ "Great!", 
                     "Now, reach the exit as quickly as possible.",
                     "Try to collide with as few red agents as possible on your way.",
                     "Press SPACE to start",
-                    ]
-
-CONGRATS_TEXT = [   "Congratulations!",
-                    "You have reached the exit!",
-                    "Let's wait for the other agents to evacuate.",
                     ]
 
 INSTRUCT_FONT = pygame.font.Font(None, 36)
