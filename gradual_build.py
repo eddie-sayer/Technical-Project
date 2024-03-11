@@ -2,7 +2,8 @@ import pygame
 import sys
 import math
 import random
-import numpy as np
+import csv
+import pandas as pd
 
 """
 This simulation is scaled to 1 pixel = 0.025 meters. Each agent has a diameter of 0.5 meters (20 pixels).
@@ -50,7 +51,7 @@ CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
 CROSS_COLOR = (255, 0, 0)
 CHARACTER_RADIUS = 6 #10 is the desired atm
-VELOCITY = 1 #1.34   # Desired speed of the player
+VELOCITY = 1.1 #1.34   # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
 NUMBER_OF_AGENTS = 80 # Number of agents in the simulation
@@ -677,6 +678,63 @@ def display_target_reached(screen):
     for i, line in enumerate(CONGRATS_TEXT):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(CONGRATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
+"""
+def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records):
+    # Create a Pandas DataFrame with the data_records
+    df = pd.DataFrame(data_records)
+
+    # Transpose the DataFrame to have time intervals as columns
+    df_transposed = df.transpose()
+
+    # Rename the columns to represent agent numbers
+    df_transposed.columns = [f"Agent {i}" for i in range(1, len(df_transposed.columns) + 1)]
+
+    # Create a Pandas Excel writer using XlsxWriter as the engine.
+    writer = pd.ExcelWriter('output.xlsx', engine='xlsxwriter')
+
+    # Write the transposed DataFrame data to XlsxWriter
+    df_transposed.to_excel(writer, sheet_name='MainData', index=True, header=True)
+
+    # Get the xlsxwriter workbook and worksheet objects
+    workbook  = writer.book
+
+    # Close the Pandas Excel writer and output the Excel file.
+    writer.close()
+
+    # Now, write the other information to a new sheet
+    other_data = {
+        'Evacuation Time': [evac_time],
+        'Collisions': [collisions],
+        'Clicks': [clicks],
+        'Route Choice': [route_choice],
+        'Indecisive Time': [indecisive_time]
+    }
+
+    df_other = pd.DataFrame(other_data)
+
+    # Write the other information to a new sheet
+    df_other.to_excel('output.xlsx', sheet_name='OtherData', index=False, startrow=len(df_transposed) + 2)
+"""
+
+# Function to write data collected to a file
+def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records):
+    # Create a Pandas DataFrame with the data_records
+    df = pd.DataFrame(data_records)
+    #Save the dataframe to a file
+    df.to_csv("output_data_records.csv")
+    # Now, write the other information to a new sheet
+    other_data = {
+        'Treatment': [SELECTED_TREATMENT],
+        'Evacuation Time': [evac_time],
+        'Collisions': [collisions],
+        'Clicks': [clicks],
+        'Route Choice': [route_choice],
+        'Indecisive Time': [indecisive_time]
+    }
+    # Write to a new sheet
+    df_other = pd.DataFrame(other_data)
+    df_other.to_csv("output.csv", mode='a', header=True)
+
 
 # Initialize Pygame
 #pygame.init()
@@ -832,7 +890,7 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and instructional_screen_2_active:
             instructional_screen_2_active = False
             main_simulation = True
-            VELOCITY = VELOCITY * 15 # Speed up the player for the main simulation as the simulation is running slower
+            VELOCITY = VELOCITY * 13 # Speed up the player for the main simulation as the simulation is running slower
             main_simulation_start = pygame.time.get_ticks() # Start the timer for the main simulation
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -1031,6 +1089,9 @@ while running:
 
     pygame.display.update()
     clock.tick(FPS)
+
+# Save data at the end of the simulation
+save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records)
 
 # Quit Pygame
 pygame.quit()
