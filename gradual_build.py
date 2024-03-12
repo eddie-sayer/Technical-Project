@@ -31,7 +31,7 @@ All other terms are kept constant across all agents.
 - The mass of the agent is a random value between 0.8 and 1.2.
 """
 
-# Add general information at the start of the simulation (what kind of data, indicating consent, fully anonymous, etc.)
+## Add general information at the start of the simulation (what kind of data, indicating consent, fully anonymous, etc.)
 # Could email around, set the treatment before email. Tell them I'm gonna delete the email, preserve anonymity.
 # Create a separate document, offer to give to people who play on your laptop. Email PDF.
 # Informed consent, the right to withdraw from the research. Just be clear to people on this. 
@@ -42,7 +42,7 @@ All other terms are kept constant across all agents.
 # Send a report draft during Easter.
 
 
-SELECTED_TREATMENT = "C"
+SELECTED_TREATMENT = "HA"
 # Constants
 WIDTH, HEIGHT = 900, 750
 SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
@@ -637,6 +637,7 @@ INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
                     " ",
                     "Empirical data will be collected for research purposes only.",
                     "The data will be fully anonymous and not shared with anyone else.",
+                    "By starting the simulation, you are consenting to collection of your data.",
                     "You have the right to withdraw from the research at any time.",
                     "Simply close the window to withdraw from the experiment.",
                     " ",
@@ -1073,6 +1074,7 @@ while running:
         evac_time = (main_simulation_end - main_simulation_start) / 1000
         indecisive_time = (choice_made_time - main_simulation_start) / 1000
         #display_final_screen(screen, evac_time)
+        """
         END_STATS_TEXT = [ "Evacuation complete!",
                     "Time taken (player): " + str(evac_time) + " seconds",
                     "Collisions: " + str(collisions),
@@ -1081,6 +1083,17 @@ while running:
                     "Time to leave starting room: " + str(indecisive_time) + " seconds",
                     "You may now close the window.",
                     ]
+        """
+        END_STATS_TEXT = [ "Evacuation complete!",
+                          "Thank you very much for participating!",
+                          "Two files will be downloaded to your cimputer when this window is closed.",
+                          "If you were emailed this simulation, please send the files to:",
+                          " ",
+                          "gj20079@bristol.ac.uk",
+                          " ",
+                          "If you have any questions, please do not hesitate to ask.",
+                          " ",
+                          "You may now close the window.",]
         screen.fill(BACKGROUND_COLOR)
         for i, line in enumerate(END_STATS_TEXT):
             text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
