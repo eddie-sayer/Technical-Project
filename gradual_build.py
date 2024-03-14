@@ -33,8 +33,8 @@ All other terms are kept constant across all agents.
 
 ## Add general information at the start of the simulation (what kind of data, indicating consent, fully anonymous, etc.)
 # Could email around, set the treatment before email. Tell them I'm gonna delete the email, preserve anonymity.
-# Create a separate document, offer to give to people who play on your laptop. Email PDF.
-# Informed consent, the right to withdraw from the research. Just be clear to people on this. 
+## Create a separate document, offer to give to people who play on your laptop. Email PDF.
+## Informed consent, the right to withdraw from the research. Just be clear to people on this. 
 ## Prescribe paratemter values specifically.
 ## The time the player spends away from the doors before they decide to exit.
 ## Just have the stats write to a file
@@ -179,8 +179,6 @@ class Player:
 #agent_count = 0
 class Agent:
     def __init__(self, x, y, radius, index):
-        #global agent_count
-        #agent_count += 1
         self.x = x
         self.y = y
         self.radius = radius
@@ -474,26 +472,7 @@ def generate_agent_constants(agents, homohetero):
             agent_constants.append(constants)
 
     elif homohetero == "hetero":
-        """
-        for agent in agents:
-
-            v_0 = random.gauss(1.34, 0.26) * 1000
-            T_alpha = random.uniform(0.4, 0.7)
-            A_b = 10 * 500
-            B_b = 0.1 * 150
-            A_s = 2.3 * 1000
-            B_s = 0.3 * 150
-            N_lb = random.uniform(-0.5, -5000)
-            N_ub = N_lb * -1
-            m = random.uniform(0.8, 1.2)
-            R_s = 100
-            R_b = 70
-            A_p = 4000
-            B_p = 0.1 * 150
-            constants = [R_s, R_b, A_p, A_s, B_p, B_s, A_b, B_b, v_0, T_alpha, N_lb, N_ub, m]
-
-            agent_constants.append(constants)
-        """
+        
         third = int(NUMBER_OF_AGENTS / 3)
         for agent in agents[0:third]:
             
@@ -638,7 +617,8 @@ INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
                     "Empirical data will be collected for research purposes only.",
                     "The data will be fully anonymous and not shared with anyone else.",
                     "By starting the simulation, you are consenting to collection of your data.",
-                    "You have the right to withdraw from the research at any time.",
+                    "You have the right to withdraw from the research at any time before",
+                    "your data is receieved.",
                     "Simply close the window to withdraw from the experiment.",
                     " ",
                     "Click the mouse to move your character.",
@@ -674,49 +654,6 @@ def display_instructional_screen_2(screen):
         text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(INSTRUCT_2_TEXT) * text.get_height() // 2 + i * text.get_height()))
     pygame.display.flip()
-
-# Function to display message once player reaches the target
-def display_target_reached(screen):
-    for i, line in enumerate(CONGRATS_TEXT):
-        text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
-        screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - len(CONGRATS_TEXT) * text.get_height() // 2 + i * text.get_height()))
-"""
-def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records):
-    # Create a Pandas DataFrame with the data_records
-    df = pd.DataFrame(data_records)
-
-    # Transpose the DataFrame to have time intervals as columns
-    df_transposed = df.transpose()
-
-    # Rename the columns to represent agent numbers
-    df_transposed.columns = [f"Agent {i}" for i in range(1, len(df_transposed.columns) + 1)]
-
-    # Create a Pandas Excel writer using XlsxWriter as the engine.
-    writer = pd.ExcelWriter('output.xlsx', engine='xlsxwriter')
-
-    # Write the transposed DataFrame data to XlsxWriter
-    df_transposed.to_excel(writer, sheet_name='MainData', index=True, header=True)
-
-    # Get the xlsxwriter workbook and worksheet objects
-    workbook  = writer.book
-
-    # Close the Pandas Excel writer and output the Excel file.
-    writer.close()
-
-    # Now, write the other information to a new sheet
-    other_data = {
-        'Evacuation Time': [evac_time],
-        'Collisions': [collisions],
-        'Clicks': [clicks],
-        'Route Choice': [route_choice],
-        'Indecisive Time': [indecisive_time]
-    }
-
-    df_other = pd.DataFrame(other_data)
-
-    # Write the other information to a new sheet
-    df_other.to_excel('output.xlsx', sheet_name='OtherData', index=False, startrow=len(df_transposed) + 2)
-"""
 
 # Function to write data collected to a file
 def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records):
@@ -873,7 +810,6 @@ data_records = [[] for _ in range(NUMBER_OF_AGENTS + 1)]
 removed_indices = []
 counter = 0
 reset_counter = False
-print_perhaps = True
 
 # Game loop
 
@@ -1047,9 +983,6 @@ while running:
 
         if player_present == False:
             
-            #message = font.render("Congratulations! Now we wait for everyone else.", True, (0, 0, 0))
-            #screen.blit(message, (WIDTH // 2 - message.get_width() // 2, HEIGHT // 2 - message.get_height() // 2))
-            #display_target_reached(screen)
             main_simulation = False
             final_screen = True
             main_simulation_end = pygame.time.get_ticks()
@@ -1068,9 +1001,6 @@ while running:
             main_simulation_end = pygame.time.get_ticks()
 
     if final_screen:
-        if print_perhaps == True:
-            print(data_records)
-            print_perhaps = False
         evac_time = (main_simulation_end - main_simulation_start) / 1000
         indecisive_time = (choice_made_time - main_simulation_start) / 1000
         #display_final_screen(screen, evac_time)
