@@ -1,0 +1,6 @@
+Treatment combination tally
+
+1. Control: Homogeneous and symmetric (C)		0
+2. Heterogeneous: Heterogeneous and symmetric (H)	0
+3. Asymmetric: Homogeneous and asymmetric (A)		0
+4. Combination: Heterogeneous and asymmetric (HA)	0
