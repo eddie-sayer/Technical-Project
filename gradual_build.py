@@ -31,18 +31,7 @@ All other terms are kept constant across all agents.
 - The mass of the agent is a random value between 0.8 and 1.2.
 """
 
-## Add general information at the start of the simulation (what kind of data, indicating consent, fully anonymous, etc.)
-# Could email around, set the treatment before email. Tell them I'm gonna delete the email, preserve anonymity.
-## Create a separate document, offer to give to people who play on your laptop. Email PDF.
-## Informed consent, the right to withdraw from the research. Just be clear to people on this. 
-## Prescribe paratemter values specifically.
-## The time the player spends away from the doors before they decide to exit.
-## Just have the stats write to a file
-## Record all agent and player paths.
-# Send a report draft during Easter.
-
-
-SELECTED_TREATMENT = "HA"
+SELECTED_TREATMENT = "HA" # Choose from "C", "H", "A", "HA", "T" (Test)
 # Constants
 WIDTH, HEIGHT = 900, 750
 SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
@@ -56,7 +45,6 @@ FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
 NUMBER_OF_AGENTS = 80 # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
-#TARGET_CHANGE_RADIUS = 3 * CHARACTER_RADIUS  # Radius within which the agent changes target
 
 # Targets
 ROUTE_A_TARGET_1 = (790, 200, 20) # (x, y, TARGET CHANGE RADIUS) #(780, 200, 20)
@@ -103,27 +91,6 @@ A_b: Boundary interaction strength = 10 m/s^2
 B_b: Boundary interaction range = 0.1 m
 
 """
-"""
-Decent set of values:
-
-R_s = 2 / 0.025  # Radius of the social force
-R_b = 0.3 / 0.025  # Radius of the boundary force
-A_p = 500 / 0.025  # Social Physical interaction strength
-A_s = 200 / 0.025 # Social interaction strength
-B_p = 0.2 / 0.025  # Social Physical interaction range
-B_s = 1 / 0.025  # Social interaction range
-A_b = 200 / 0.025 # Boundary interaction strength
-B_b = 0.3 / 0.025  # Boundary interaction range
-v_0 = 1.34 / 0.025 * 100  # Desired speed
-T_alpha = 0.5  # Relaxation time
-N_lb = -0.5  # Noise lower bound
-N_ub = 0.5  # Noise upper bound
-m = 70 * 0.025  # Mass of the agent
-"""
-
-# Constants for the social force calculation
-# Directly from the Helbing paper:
-
 
 # Functions
 def lerp(start, end, t):  # Linear interpolation function
@@ -176,7 +143,6 @@ class Player:
 
 
 # Agent class
-#agent_count = 0
 class Agent:
     def __init__(self, x, y, radius, index):
         self.x = x
@@ -458,7 +424,7 @@ def generate_agent_constants(agents, homohetero):
             T_alpha = 0.55 #0.5 # Relaxation time
             A_b = 10 * 500  #50 Boundary interaction strength 
             B_b = 0.1 * 150 #5 #0.1 * 150 # Boundary interaction range
-            A_s = 2.3 * 1000 #2.3 * 500 # * 1000 # Social interaction strength
+            A_s = 2.3 * 550 #2.3 * 500 # * 1000 # Social interaction strength
             B_s = 0.3 * 150 #0.1 * 150 # 0.3 * 150 # Social interaction range
             N_lb = -1000 #-500 #-0.5 # Noise lb
             N_ub = 1000 #500 #0.5 Noise ub
@@ -482,11 +448,11 @@ def generate_agent_constants(agents, homohetero):
             T_alpha = 0.4 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -3000 # Noise lower bound
             N_ub = 3000 # Noise upper bound
-            m = 1   # Mass of the agent
+            m = 0.9   # Mass of the agent
             R_s = 100 # Radius of the social force
             R_b = 70 # Radius of the boundary force
             A_p = 4000 # Physical interaction strength
@@ -504,7 +470,7 @@ def generate_agent_constants(agents, homohetero):
             T_alpha = 0.55 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -1000 # Noise lower bound
             N_ub = 1000 # Noise upper bound
@@ -522,15 +488,15 @@ def generate_agent_constants(agents, homohetero):
             
             #Old
 
-            v_0 = 1 * 1000 # Desired speed
+            v_0 = 0.95 * 1000 # Desired speed
             T_alpha = 0.7 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -200 # Noise lower bound
             N_ub = 200 # Noise upper bound
-            m = 1   # Mass of the agent
+            m = 0.95   # Mass of the agent
             R_s = 100 # Radius of the social force
             R_b = 70 # Radius of the boundary force
             A_p = 4000 # Physical interaction strength
@@ -552,11 +518,11 @@ def generate_agent_constants(agents, homohetero):
             T_alpha = 0.4 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -3000 # Noise lower bound
             N_ub = 3000 # Noise upper bound
-            m = 1   # Mass of the agent
+            m = 0.9   # Mass of the agent
             R_s = 100 # Radius of the social force
             R_b = 70 # Radius of the boundary force
             A_p = 4000 # Physical interaction strength
@@ -574,7 +540,7 @@ def generate_agent_constants(agents, homohetero):
             T_alpha = 0.55 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -1000 # Noise lower bound
             N_ub = 1000 # Noise upper bound
@@ -592,15 +558,15 @@ def generate_agent_constants(agents, homohetero):
             
             #Old
 
-            v_0 = 1 * 1000 # Desired speed
+            v_0 = 0.95 * 1000 # Desired speed
             T_alpha = 0.7 # Relaxation time
             A_b = 10 * 500 # Boundary interaction strength
             B_b = 0.1 * 150 # Boundary interaction range    
-            A_s = 2.3 * 1000 # Social interaction strength
+            A_s = 2.3 * 550 # Social interaction strength
             B_s = 0.3 * 150 # Social interaction range
             N_lb = -200 # Noise lower bound
             N_ub = 200 # Noise upper bound
-            m = 1   # Mass of the agent
+            m = 0.95   # Mass of the agent
             R_s = 100 # Radius of the social force
             R_b = 70 # Radius of the boundary force
             A_p = 4000 # Physical interaction strength
@@ -656,7 +622,7 @@ def display_instructional_screen_2(screen):
     pygame.display.flip()
 
 # Function to write data collected to a file
-def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records):
+def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, clicks_positions, collision_positions, data_records):
     # Create a Pandas DataFrame with the data_records
     df = pd.DataFrame(data_records)
     #Save the dataframe to a file
@@ -668,7 +634,9 @@ def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_ti
         'Collisions': [collisions],
         'Clicks': [clicks],
         'Route Choice': [route_choice],
-        'Indecisive Time': [indecisive_time]
+        'Indecisive Time': [indecisive_time],
+        'Clicks Positions (player.x, player.y, target_x, target_y)': [clicks_positions],
+        'Collision Positions (player.x, player.y, agent.x, agent.y)': [collision_positions]
     }
     # Write to a new sheet
     df_other = pd.DataFrame(other_data)
@@ -676,14 +644,8 @@ def save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_ti
 
 
 # Initialize Pygame
-#pygame.init()
-#screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-# Load the background image
-#background = pygame.image.load("Graphics/background.png").convert_alpha()
 
 # Create the player
-#player = Player(WIDTH // 2, HEIGHT // 2, CHARACTER_RADIUS)
 player = Player(10, 375, CHARACTER_RADIUS)
 target_x, target_y = player.x, player.y
 moving = False
@@ -773,7 +735,7 @@ elif SELECTED_TREATMENT == "HA":
 
 elif SELECTED_TREATMENT == "T":
 
-    agent_targets = route_split(agents, agent_coords, 50)
+    agent_targets = route_split(agents, agent_coords, 70)
 
     agent_constants = generate_agent_constants(agents, "test")
 
@@ -798,13 +760,14 @@ instructional_screen_1_active = True #True
 instructional_screen_2_active = False
 initial_navigation = False
 main_simulation = False #False
-#agents_present = True
 player_present = True
 final_screen = False
 collisions = 0
 collison_occurred = [False] * NUMBER_OF_AGENTS
 original_indices = list(range(NUMBER_OF_AGENTS))
 clicks = 0
+clicks_positions = [] # Click positions in the form (player_x, player_y, target_x, target_y)
+collision_positions = [] # Collision positions in the form (player_x, player_y, agent_x, agent_y)
 route_choice = None
 data_records = [[] for _ in range(NUMBER_OF_AGENTS + 1)]
 removed_indices = []
@@ -836,13 +799,12 @@ while running:
             moving = True
             if main_simulation:
                 clicks += 1
+                clicks_positions.append((player.x, player.y, target_x, target_y))
 
 
     if instructional_screen_1_active:
         continue # Skip the rest of the loop if the first instructional screen is active    
 
-    # Print the mouse position
-    #print(f"Mouse Position: ({pygame.mouse.get_pos()[0]}, {pygame.mouse.get_pos()[1]})")
 
     if initial_navigation:
         
@@ -894,7 +856,6 @@ while running:
                 moving = False
 
         # Draw the background
-        #screen.blit(background, (0, 0))
         screen.fill(BACKGROUND_COLOR)
                 
         # Draw the rectangles
@@ -931,6 +892,7 @@ while running:
             if collison_occurred[i] == False and distance_to_player <= 2.5 * CHARACTER_RADIUS:
                 collisions += 1
                 collison_occurred[i] = True
+                collision_positions.append((player.x, player.y, agent_coords[i][0], agent_coords[i][1]))
             if distance_to_player > 2.5 * CHARACTER_RADIUS:
                 collison_occurred[i] = False
 
@@ -1003,17 +965,7 @@ while running:
     if final_screen:
         evac_time = (main_simulation_end - main_simulation_start) / 1000
         indecisive_time = (choice_made_time - main_simulation_start) / 1000
-        #display_final_screen(screen, evac_time)
-        """
-        END_STATS_TEXT = [ "Evacuation complete!",
-                    "Time taken (player): " + str(evac_time) + " seconds",
-                    "Collisions: " + str(collisions),
-                    "Click counter: " + str(clicks),
-                    "Route choice: " + str(route_choice),
-                    "Time to leave starting room: " + str(indecisive_time) + " seconds",
-                    "You may now close the window.",
-                    ]
-        """
+
         END_STATS_TEXT = [  "Evacuation complete!",
                             "Thank you very much for participating!",
                             "Two files named 'output.csv' and 'output_data_records.csv' will be",
@@ -1037,7 +989,7 @@ while running:
     clock.tick(FPS)
 
 # Save data at the end of the simulation
-save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, data_records)
+save_data_to_file(evac_time, collisions, clicks, route_choice, indecisive_time, clicks_positions, collision_positions, data_records)
 
 # Quit Pygame
 pygame.quit()
