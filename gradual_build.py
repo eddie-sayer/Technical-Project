@@ -615,7 +615,7 @@ def generate_agent_constants(agents, homohetero):
 INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
                     " ",
                     "Empirical data will be collected for research purposes only.",
-                    "The data will be fully anonymous and not shared with anyone else.",
+                    "The data collected will be fully anonymous.",
                     "By starting the simulation, you are consenting to collection of your data.",
                     "You have the right to withdraw from the research at any time before",
                     "your data is receieved.",
@@ -1014,16 +1014,18 @@ while running:
                     "You may now close the window.",
                     ]
         """
-        END_STATS_TEXT = [ "Evacuation complete!",
-                          "Thank you very much for participating!",
-                          "Two files will be downloaded to your cimputer when this window is closed.",
-                          "If you were emailed this simulation, please send the files to:",
-                          " ",
-                          "gj20079@bristol.ac.uk",
-                          " ",
-                          "If you have any questions, please do not hesitate to ask.",
-                          " ",
-                          "You may now close the window.",]
+        END_STATS_TEXT = [  "Evacuation complete!",
+                            "Thank you very much for participating!",
+                            "Two files named 'output.csv' and 'output_data_records.csv' will be",
+                            "downloaded to your computer when this window is closed.",
+                            "They should appear in the same location that you saved this simulation.",
+                            "If you were emailed this simulation, please send the files to:",
+                            " ",
+                            "gj20079@bristol.ac.uk",
+                            " ",
+                            "If you have any questions, please do not hesitate to ask.",
+                            " ",
+                            "You may now close the window.",]
         screen.fill(BACKGROUND_COLOR)
         for i, line in enumerate(END_STATS_TEXT):
             text = INSTRUCT_FONT.render(line, True, INSTRUCT_TEXT_COLOR)
