@@ -1,5 +1,5 @@
-Treatment combination tally: 35
-1. Control: Homogeneous and symmetric (C)		8 (4)
-2. Heterogeneous: Heterogeneous and symmetric (H)	9 (3)
-3. Asymmetric: Homogeneous and asymmetric (A)		9 (2)
-4. Combination: Heterogeneous and asymmetric (HA)	9 (2)
+Treatment combination tally: 40
+1. Control: Homogeneous and symmetric (C)		10 (3)
+2. Heterogeneous: Heterogeneous and symmetric (H)	10 (3)
+3. Asymmetric: Homogeneous and asymmetric (A)		10 (2)
+4. Combination: Heterogeneous and asymmetric (HA)	10 (1)
