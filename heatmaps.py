@@ -7,11 +7,27 @@ import ast
 df = pd.read_csv('all_responses.csv')
 df2 = pd.read_csv('all_player_paths.csv')
 
+c_indices = []
+h_indices = []
+a_indices = []
+ha_indices = []
+
 click_positions = df['Clicks Positions (player.x, player.y, target_x, target_y)']
+treatments = df['Treatment']
 collision_positions = df['Collision Positions (player.x, player.y, agent.x, agent.y)']
 path_positions = df2.iloc[1:40,1:61]
 
-print(path_positions)
+for i, treatment in enumerate(treatments):
+    if treatment == 'C':
+        c_indices.append(i)
+    elif treatment == 'H':
+        h_indices.append(i)
+    elif treatment == 'A':
+        a_indices.append(i)
+    elif treatment == 'HA':
+        ha_indices.append(i)
+
+print(c_indices, h_indices, a_indices, ha_indices)
 
 flat_path_positions = []
 
@@ -23,7 +39,7 @@ for _, row in path_positions.iterrows():
             if isinstance(tuple_val, tuple) and len(tuple_val) == 4:
                 flat_path_positions.append((tuple_val[0], tuple_val[1]))
 
-print(flat_path_positions)
+#print(flat_path_positions)
 
 # Flatten the list of tuples and extract the first two elements of each tuple
 flat_data_player = [(pos[0], pos[1]) for row in click_positions for pos in eval(row)]
