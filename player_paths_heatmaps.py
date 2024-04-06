@@ -1,0 +1,216 @@
+import pandas as pd
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
+import ast
+
+df = pd.read_csv('all_responses.csv')
+df2 = pd.read_csv('all_player_paths.csv')
+
+c_indices = []
+h_indices = []
+a_indices = []
+ha_indices = []
+
+click_positions = df['Clicks Positions (player.x, player.y, target_x, target_y)']
+treatments = df['Treatment']
+collision_positions = df['Collision Positions (player.x, player.y, agent.x, agent.y)']
+path_positions = df2.iloc[0:40,1:61]
+
+for i, treatment in enumerate(treatments):
+    if treatment == 'C':
+        c_indices.append(i)
+    elif treatment == 'H':
+        h_indices.append(i)
+    elif treatment == 'A':
+        a_indices.append(i)
+    elif treatment == 'HA':
+        ha_indices.append(i)
+
+print(c_indices, h_indices, a_indices, ha_indices)
+
+flat_path_positions_C = []
+flat_path_positions_H = []
+flat_path_positions_A = []
+flat_path_positions_HA = []
+
+for index, row in path_positions.iterrows():
+    print(index)
+    for val in row:
+        if not pd.isna(val):
+            #print(val)
+            tuple_val = ast.literal_eval(val)
+            if isinstance(tuple_val, tuple) and len(tuple_val) == 4:
+                if index in c_indices:
+                    flat_path_positions_C.append((tuple_val[0], tuple_val[1]))
+                elif index in h_indices:
+                    flat_path_positions_H.append((tuple_val[0], tuple_val[1]))
+                elif index in a_indices:
+                    flat_path_positions_A.append((tuple_val[0], tuple_val[1]))
+                elif index in ha_indices:
+                    flat_path_positions_HA.append((tuple_val[0], tuple_val[1]))
+                
+                #flat_path_positions.append((tuple_val[0], tuple_val[1]))
+
+#print(flat_path_positions_C)
+
+#print(flat_path_positions)
+
+# Flatten the list of tuples and extract the first two elements of each tuple
+flat_data_player = [(pos[0], pos[1]) for row in click_positions for pos in eval(row)]
+
+flat_data_target = [(pos[2], pos[3]) for row in click_positions for pos in eval(row)]   
+
+flat_data_collision = [(pos[0], pos[1]) for row in collision_positions for pos in eval(row)]
+
+flat_path_positions_C = [(pos[0], pos[1]) for pos in flat_path_positions_C]
+flat_path_positions_H = [(pos[0], pos[1]) for pos in flat_path_positions_H]
+flat_path_positions_A = [(pos[0], pos[1]) for pos in flat_path_positions_A]
+flat_path_positions_HA = [(pos[0], pos[1]) for pos in flat_path_positions_HA]
+
+#flat_path_positions = [(pos[0], pos[1]) for _, row in path_positions.iterrows() for val in row if pd.notna(val) for pos in ast.literal_eval(val)]# if isinstance(pos, tuple)]
+#unique_types = {type(val) for _, row in path_positions.iterrows() for val in row}
+#print(unique_types)
+
+#print(flat_path_positions)
+"""
+# List of tuples for path_positions
+path_positions_tuples = []
+for _, row in path_positions.iterrows():
+    for val in row:
+        if not pd.isna(val):
+            path_positions_tuples.append((val[0], val[1]))
+
+print(path_positions_tuples)
+"""
+np.array(flat_data_player)
+np.array(flat_data_target)
+np.array(flat_data_collision)
+np.array(flat_path_positions_C)
+np.array(flat_path_positions_H)
+np.array(flat_path_positions_A)
+np.array(flat_path_positions_HA)
+
+#print(flat_data_player)
+
+"""
+# CLICKS POSITIONS
+
+# Player position
+# Create a 2D histogram to represent click densities
+heatmap, xedges, yedges = np.histogram2d(
+    [pos[0] for pos in flat_data_player],  # x coordinates
+    [pos[1] for pos in flat_data_player],  # y coordinates
+    bins=(90, 75),                # specify the grid size
+    range=[[0, 900], [0, 750]]      # specify the range of x and y coordinates
+)
+"""
+"""
+# Target position
+# Create a 2D histogram to represent click densities
+heatmap, xedges, yedges = np.histogram2d(
+    [pos[0] for pos in flat_data_target],  # x coordinates
+    [pos[1] for pos in flat_data_target],  # y coordinates
+    bins=(90, 75),                # specify the grid size
+    range=[[0, 900], [0, 750]]      # specify the range of x and y coordinates
+)
+"""
+"""
+# COLLISION POSITIONS
+# Create a 2D histogram to represent click densities
+heatmap, xedges, yedges = np.histogram2d(
+    [pos[0] for pos in flat_data_collision],  # x coordinates
+    [pos[1] for pos in flat_data_collision],  # y coordinates
+    bins=(90, 75),                # specify the grid size
+    range=[[0, 900], [0, 750]]      # specify the range of x and y coordinates
+)
+"""
+#"""
+# PLAYER PATHS
+# Create a 2x2 subplot
+fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+
+# Create a list of treatments and their corresponding data
+treatments = [
+    ("C", flat_path_positions_C),
+    ("H", flat_path_positions_H),
+    ("A", flat_path_positions_A),
+    ("HA", flat_path_positions_HA),
+]
+
+#Find the maximum value across all heatmaps
+max_value = max(
+    np.max(np.histogram2d([pos[0] for pos in data], [pos[1] for pos in data], bins=(90, 75), range=[[0, 900], [0, 750]])[0])
+    for _, data in treatments
+)
+unique_values = []
+
+
+# Iterate over the treatments and their corresponding data
+for ax, (treatment, data) in zip(axs.flatten(), treatments):
+    # Create a 2D histogram to represent click densities
+    heatmap, xedges, yedges = np.histogram2d(
+        [pos[0] for pos in data],  # x coordinates
+        [pos[1] for pos in data],  # y coordinates
+        bins=(90, 75),  # specify the grid size
+        #bins=(36, 30),  # specify the grid size (10x10 grid)
+        range=[[0, 900], [0, 750]]  # specify the range of x and y coordinates
+    )
+
+    # Flatten the heatmap array and find the unique values
+    unique_values.extend(np.unique(heatmap))
+
+    # Set vmax to a value lower than the maximum value
+    vmax_value = max_value * (5/18)  # Adjust this value as needed
+
+    print(max_value)
+
+    # Plot the heatmap using Seaborn with a diverging colormap
+    im = sns.heatmap(heatmap.T, cmap='RdYlBu_r', vmax=vmax_value, ax=ax, cbar=False)  # Using a diverging colormap
+
+    # Create a colorbar
+    cbar = plt.colorbar(im.collections[0], ax=ax)
+
+    # Manually set the ticks and labels on the colorbar
+    cbar.set_ticklabels([])
+
+    # Set the title of the subplot
+    ax.set_title(f"Treatment {treatment}", fontsize=15)
+    # Remove the existing x and y axis labels
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+
+    # Move the x-axis to the top of the plot
+    ax.xaxis.tick_top()
+
+    # Manually add the x axis labels
+    ax.text(0.5, -2.5, str(int(xedges[0])), ha='center', va='center', fontsize=10)
+    ax.text(len(xedges)-2.1, len(yedges) - 78.5, str(int(xedges[-1])), ha='center', va='center', fontsize=10)
+    
+    # Manually add the y axis labels
+    ax.text(-3, 0.5, str(int(yedges[0])), ha='center', va='center')
+    ax.text(-5, len(yedges)-3.5, str(int(yedges[-1])), ha='center', va='center')
+
+    # Manually set the colorbar labels
+    label_0 = "0"
+    label_1 = "1"
+    label_2 = "2"
+    label_3 = "3"
+    label_4 = "4"
+    label_5 = " ≥5"
+
+    ax.text(103, 75, label_0, ha='center', va='center', fontsize=10)
+    ax.text(103, 60, label_1, ha='center', va='center', fontsize=10)
+    ax.text(103, 45, label_2, ha='center', va='center', fontsize=10)
+    ax.text(103, 30, label_3, ha='center', va='center', fontsize=10)
+    ax.text(103, 15, label_4, ha='center', va='center', fontsize=10)
+    ax.text(103, 0, label_5, ha='center', va='center', fontsize=10)
+
+# Remove duplicates from the list
+unique_values = list(set(unique_values))
+
+print(unique_values)
+
+# Show the plot
+plt.tight_layout()
+plt.show()
