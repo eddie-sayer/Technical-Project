@@ -12,6 +12,9 @@ df = pd.read_csv('all_responses.csv')
 # Convert the columns to numeric types
 df['Clicks'] = pd.to_numeric(df['Clicks'], errors='coerce')
 
+# Flatten the list of tuples and extract the first two elements of each tuple
+flat_data_player = [(pos[0], pos[1]) for row in click_positions for pos in eval(row)]
+
 # Find the maximum click number
 min_evac_time = df['Clicks'].min()
 max_evac_time = df['Clicks'].max()
