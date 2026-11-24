@@ -6,7 +6,6 @@ import csv
 import pandas as pd
 
 """
-hello
 This is a simple evacuation simulation, based on the social force model by Dirk Helbing and Peter Molnar.
 Please do not change anything in the code before running it.
 Please only play the simulation once, as this will provide the most representative results :).
