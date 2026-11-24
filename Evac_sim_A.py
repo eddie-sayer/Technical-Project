@@ -14,7 +14,10 @@ as this file. Please email these to gj20079@bristol.ac.uk along with your age an
 All data is collected anonymously and will be used for research purposes only.
 """
 
+
 SELECTED_TREATMENT = "A" # Choose from "C", "H", "A", "HA", "T" (Test)
+
+
 # Constants
 WIDTH, HEIGHT = 900, 750
 SPAWN_BOX_COORDS = (200,160,750,590) # (x1, y1, x2, y2)
@@ -22,15 +25,15 @@ BACKGROUND_COLOR = (255, 255, 205)
 CHARACTER_COLOR = (0, 0, 0)
 AGENT_COLOR = (255, 0, 0)
 CROSS_COLOR = (255, 0, 0)
-CHARACTER_RADIUS = 6 #10 is the desired atm
-VELOCITY = 1.1 #1.34   # Desired speed of the player
+CHARACTER_RADIUS = 6
+VELOCITY = 1.1 # Desired speed of the player
 FPS = 60  # Frames per second
 TIMESTEP = 1 / FPS  # Timestep for the simulation
 NUMBER_OF_AGENTS = 80 # Number of agents in the simulation
 X_CLOSEST_AGENTS = 5  # Number of closest agents to consider for the social force calculation
 
 # Targets
-ROUTE_A_TARGET_1 = (790, 200, 20) # (x, y, TARGET CHANGE RADIUS) #(780, 200, 20)
+ROUTE_A_TARGET_1 = (790, 200, 20) # (x, y, TARGET CHANGE RADIUS)
 ROUTE_A_TARGET_2 = (790, 80, 3 * CHARACTER_RADIUS) # (780, 80, 3 * CHARACTER_RADIUS)
 ROUTE_A_TARGET_3 = (205, 80, 15) # (220, 80, 3 * CHARACTER_RADIUS)
 ROUTE_A_TARGET_4 = (130, 80, 3 * CHARACTER_RADIUS)
@@ -75,7 +78,9 @@ B_b: Boundary interaction range = 0.1 m
 
 """
 
-# Functions
+# Functions and classes
+
+
 def lerp(start, end, t):  # Linear interpolation function
     return start + t * (end - start)
 

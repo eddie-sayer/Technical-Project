@@ -561,6 +561,8 @@ def generate_agent_constants(agents, homohetero):
 
     return agent_constants
 
+# Instructional text to be used in subsequent functions
+
 INSTRUCT_1_TEXT = [ "Welcome to a simple evacuation simulation!",
                     " ",
                     "Empirical data will be collected for research purposes only.",
@@ -643,11 +645,11 @@ rectangles = [              # Rectangles, in the format (x1, y1, width, height)
     (0, 415, 40, 335),
     (200, 590, 550, 40),
     (200, 120, 550, 40),
-    (830, 120, 30, 40), #(810, 120, 50, 40)
-    (830, 590, 30, 40), #(810, 590, 50, 40)
-    (160, 105, 40, 540), #(160, 100, 40, 550)
-    (160, 695, 40, 15), #(160, 690, 40, 20)
-    (160, 40, 40, 15), #(160, 40, 40, 20)
+    (830, 120, 30, 40),
+    (830, 590, 30, 40),
+    (160, 105, 40, 540),
+    (160, 695, 40, 15),
+    (160, 40, 40, 15),
 ]
 #Make sure to change manually if the doorways are changed
 #When the player enters one of these rectangles, the route choice is noted
@@ -739,10 +741,12 @@ clock = pygame.time.Clock()
 
 # Display instructional screen 1
 display_instructional_screen_1(screen)
-instructional_screen_1_active = True #True 
+
+#Initialise constants, booleans, lists
+instructional_screen_1_active = True
 instructional_screen_2_active = False
 initial_navigation = False
-main_simulation = False #False
+main_simulation = False
 player_present = True
 final_screen = False
 collisions = 0
